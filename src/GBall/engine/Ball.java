@@ -3,6 +3,10 @@ package GBall.engine;
 public class Ball extends Entity {
 	private static final long serialVersionUID = 6843930351309156932L;
 
+	public Ball(long id) {
+		super(id);
+	}
+
 	@Override
 	public void render(GameWindow gw, long time) {
 		gw.setColor(Const.BALL_COLOR);

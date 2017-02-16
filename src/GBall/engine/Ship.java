@@ -10,7 +10,8 @@ public class Ship extends Entity {
 
 	public final Color color;
 
-	public Ship(Color color) {
+	public Ship(long id, Color color) {
+		super(id);
 		this.color = color;
 	}
 

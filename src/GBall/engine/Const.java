@@ -16,9 +16,9 @@ public final class Const {
 	public final static Color BG_COLOR = Color.BLACK;
 	public final static int FONT_SIZE = 24;
 
-	public final static boolean SHOW_FPS = false;
-	public final static Color FPS_TEXT_COLOR = Color.RED;
-	public final static Vector2 FPS_TEXT_POSITION = new Vector2(0.0, 0.0);
+	public final static boolean SHOW_FPS = true;
+	public final static Color FPS_TEXT_COLOR = Color.WHITE;
+	public final static Vector2 FPS_TEXT_POSITION = new Vector2(10.0, 50.0);
 
 	public final static Vector2 TEAM1_SCORE_TEXT_POSITION = new Vector2((double) (DISPLAY_WIDTH / 2) - 120, 52.0);
 	public final static Vector2 TEAM2_SCORE_TEXT_POSITION = new Vector2((double) (DISPLAY_WIDTH / 2) + 120, 52.0);

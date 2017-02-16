@@ -31,11 +31,11 @@ public class Game implements WorldListener, GameWindowListener {
 	public Game() {
 		gw = new GameWindow(this);
 
-		s1 = new Ship(Color.RED);
-		s2 = new Ship(Color.RED);
-		s3 = new Ship(Color.GREEN);
-		s4 = new Ship(Color.GREEN);
-		b = new Ball();
+		s1 = new Ship(0L, Color.RED);
+		s2 = new Ship(1L, Color.RED);
+		s3 = new Ship(2L, Color.GREEN);
+		s4 = new Ship(3L, Color.GREEN);
+		b = new Ball(4L);
 
 		world = new World(this);
 		world.addEntity(s1, s2, s3, s4, b);
@@ -44,7 +44,7 @@ public class Game implements WorldListener, GameWindowListener {
 	private boolean left, right, up, down;
 
 	public void run() {
-		/*gw.addKeyListener(new KeyListener() {
+		gw.addKeyListener(new KeyListener() {
 
 			@Override
 			public void keyPressed(KeyEvent arg0) {
@@ -95,32 +95,20 @@ public class Game implements WorldListener, GameWindowListener {
 
 			}
 
-		});*/
-		
-		Controller c = new Controller(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN, new ControllerListener(){
-			
-			@Override
-			public void onPress(Direction d){
-				switch(d){
-				case UP:{
-					s1.acceleration = Const.SHIP_MAX_ACCELERATION;
-					break;
-				}
-				}
-			}
-			
-			@Override
-			public void onRelease(Direction d){
-				switch(d){
-				case UP:{
-					s1.acceleration = 0;
-					break;
-				}
-				}
-			}
-			
 		});
-		gw.addKeyListener(c);
+
+		/*
+		 * Controller c = new Controller(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT,
+		 * KeyEvent.VK_UP, KeyEvent.VK_DOWN, new ControllerListener(){
+		 * 
+		 * @Override public void onPress(Direction d){ switch(d){ case UP:{
+		 * s1.acceleration = Const.SHIP_MAX_ACCELERATION; break; } } }
+		 * 
+		 * @Override public void onRelease(Direction d){ switch(d){ case UP:{
+		 * s1.acceleration = 0; break; } } }
+		 * 
+		 * }); gw.addKeyListener(c);
+		 */
 
 		reset();
 
@@ -205,6 +193,11 @@ public class Game implements WorldListener, GameWindowListener {
 		gw.drawString(Integer.toString(scoreRed), Const.TEAM1_SCORE_TEXT_POSITION);
 		gw.setColor(Const.TEAM2_COLOR);
 		gw.drawString(Integer.toString(scoreGreen), Const.TEAM2_SCORE_TEXT_POSITION);
+
+		if (Const.SHOW_FPS) {
+			gw.setColor(Const.FPS_TEXT_COLOR);
+			gw.drawString(Integer.toString((int) world.fps()), Const.FPS_TEXT_POSITION);
+		}
 	}
 
 }

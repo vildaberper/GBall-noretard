@@ -1,7 +1,7 @@
 package GBall.engine;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import GBall.engine.Vector2.Direction;
@@ -20,7 +20,9 @@ public class World {
 
 	private long lastTick;
 
-	private Set<Entity> entities = new HashSet<Entity>();
+	private double dt = 0.0;
+
+	private Map<Long, Entity> entities = new HashMap<Long, Entity>();
 
 	public World(WorldListener listener) {
 		this.listener = listener;
@@ -28,16 +30,20 @@ public class World {
 	}
 
 	public void forEachEntity(Consumer<? super Entity> func) {
-		entities.forEach(func);
+		entities.entrySet().forEach(e -> func.accept(e.getValue()));
 	}
 
 	public void addEntity(Entity... e) {
 		for (Entity e_ : e)
-			entities.add(e_);
+			entities.put(e_.id, e_);
 	}
 
 	public void removeAll() {
 		entities.clear();
+	}
+
+	public double fps() {
+		return dt > 0.0 ? 1.0 / dt : 0.0;
 	}
 
 	// TODO Move
@@ -65,7 +71,7 @@ public class World {
 	}
 
 	private void checkEntityCollision(Entity e1) {
-		entities.forEach(e2 -> {
+		forEachEntity(e2 -> {
 			if (e1.equals(e2))
 				return;
 
@@ -76,13 +82,17 @@ public class World {
 
 	public void update() {
 		long time = Time.getTime();
-		double dt = (time - lastTick) / 1000.0;
 
-		entities.removeIf(e -> e.dead);
+		if (time == lastTick)
+			return;
 
-		entities.forEach(e -> e.tick(dt, time));
-		entities.forEach(e -> checkWallCollision(e));
-		entities.forEach(e -> checkEntityCollision(e));
+		dt = (time - lastTick) / 1000.0;
+
+		entities.entrySet().removeIf(e -> e.getValue().dead);
+
+		forEachEntity(e -> e.tick(dt, time));
+		forEachEntity(e -> checkWallCollision(e));
+		forEachEntity(e -> checkEntityCollision(e));
 
 		lastTick = time;
 	}
@@ -90,7 +100,7 @@ public class World {
 	public void render(GameWindow gw) {
 		long time = Time.getTime();
 
-		entities.forEach(e -> e.render(gw, time));
+		forEachEntity(e -> e.render(gw, time));
 	}
 
 }

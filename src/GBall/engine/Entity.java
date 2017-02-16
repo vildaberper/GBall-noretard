@@ -5,25 +5,31 @@ import java.io.Serializable;
 public abstract class Entity implements Serializable {
 	private static final long serialVersionUID = -9029024866598246630L;
 
+	public final long id;
+
 	public Vector2 position = new Vector2(), velocity = new Vector2(), direction = new Vector2(-1.0, 0.0);
-	
+
 	public double acceleration = 0.0;
 
 	public boolean dead = false;
 
 	public long lastTick = 0;
 
+	protected Entity(long id) {
+		this.id = id;
+	}
+
 	public void tick(double dt, long time) {
-		if(acceleration > 0.0)
+		if (acceleration > 0.0)
 			velocity.add(direction.clone().scale(acceleration * dt));
 		else
 			velocity.scale(friction(), dt);
 
 		if (velocity.length() > maxSpeed())
 			velocity.normalize().scale(maxSpeed());
-		
+
 		position.add(velocity.clone().scale(dt));
-		
+
 		lastTick = time;
 	}
 
