@@ -44,7 +44,7 @@ public class Game implements WorldListener, GameWindowListener {
 	private boolean left, right, up, down;
 
 	public void run() {
-		gw.addKeyListener(new KeyListener() {
+		/*gw.addKeyListener(new KeyListener() {
 
 			@Override
 			public void keyPressed(KeyEvent arg0) {
@@ -95,7 +95,32 @@ public class Game implements WorldListener, GameWindowListener {
 
 			}
 
+		});*/
+		
+		Controller c = new Controller(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN, new ControllerListener(){
+			
+			@Override
+			public void onPress(Direction d){
+				switch(d){
+				case UP:{
+					s1.acceleration = Const.SHIP_MAX_ACCELERATION;
+					break;
+				}
+				}
+			}
+			
+			@Override
+			public void onRelease(Direction d){
+				switch(d){
+				case UP:{
+					s1.acceleration = 0;
+					break;
+				}
+				}
+			}
+			
 		});
+		gw.addKeyListener(c);
 
 		reset();
 

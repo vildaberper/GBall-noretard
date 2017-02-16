@@ -5,7 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.net.DatagramPacket;
 
 public class Packet {
 
@@ -55,6 +55,15 @@ public class Packet {
 
 	public byte[] getData() {
 		return data;
+	}
+
+	public DatagramPacket toDatagramPacket(Location target) {
+		return new DatagramPacket(getData(), 0, getData().length, target.ip, target.port);
+	}
+
+	@Override
+	public Packet clone() {
+		return new Packet(getData().clone());
 	}
 
 }
