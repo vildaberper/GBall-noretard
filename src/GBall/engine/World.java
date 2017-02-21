@@ -13,7 +13,7 @@ public class World {
 
 	public interface WorldListener {
 
-		public void onWallCollide(Entity e, Direction d);
+		public void onWallCollide(Entity e, Direction d, double dist);
 
 		public void onEntityCollide(Entity e1, Entity e2);
 
@@ -77,23 +77,25 @@ public class World {
 		return state.dt > 0.0 ? 1.0 / state.dt : 0.0;
 	}
 
-	private void checkWallCollision_helper(Entity e, Direction d) {
+	private void checkWallCollision_helper(Entity e, Direction d, double dist) {
 		if (e.velocity.isMovingInDirection(d))
-			listener.onWallCollide(e, d);
+			listener.onWallCollide(e, d, dist);
 	}
 
 	private void checkWallCollision(Entity e) {
-		if (interv(e.position.x, Const.WINDOW_BORDER_WIDTH) < e.radius())
-			checkWallCollision_helper(e, Direction.LEFT);
+		double d;
 
-		if (interv(e.position.x, Const.DISPLAY_WIDTH - Const.WINDOW_BORDER_WIDTH) < e.radius())
-			checkWallCollision_helper(e, Direction.RIGHT);
+		if ((d = interv(e.position.x, Const.WINDOW_BORDER_WIDTH)) < e.radius())
+			checkWallCollision_helper(e, Direction.LEFT, d);
 
-		if (interv(e.position.y, Const.WINDOW_TOP_HEIGHT) < e.radius())
-			checkWallCollision_helper(e, Direction.UP);
+		if ((d = interv(e.position.x, Const.DISPLAY_WIDTH - Const.WINDOW_BORDER_WIDTH)) < e.radius())
+			checkWallCollision_helper(e, Direction.RIGHT, d);
 
-		if (interv(e.position.y, Const.DISPLAY_HEIGHT - Const.WINDOW_BOTTOM_HEIGHT) < e.radius())
-			checkWallCollision_helper(e, Direction.DOWN);
+		if ((d = interv(e.position.y, Const.WINDOW_TOP_HEIGHT)) < e.radius())
+			checkWallCollision_helper(e, Direction.UP, d);
+
+		if ((d = interv(e.position.y, Const.DISPLAY_HEIGHT - Const.WINDOW_BOTTOM_HEIGHT)) < e.radius())
+			checkWallCollision_helper(e, Direction.DOWN, d);
 	}
 
 	private void checkEntityCollision(Entity e1) {

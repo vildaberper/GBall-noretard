@@ -87,10 +87,29 @@ public class Game implements WorldListener, GameWindowListener {
 	}
 
 	@Override
-	public void onWallCollide(Entity e, Direction d) {
+	public void onWallCollide(Entity e, Direction d, double dist) {
 		System.out.println("Wall collision");
 
 		e.velocity.invertInDirection(d);
+
+		switch (d) {
+		case LEFT: {
+			e.position.x += e.radius() - dist;
+			break;
+		}
+		case RIGHT: {
+			e.position.x -= e.radius() - dist;
+			break;
+		}
+		case UP: {
+			e.position.y += e.radius() - dist;
+			break;
+		}
+		case DOWN: {
+			e.position.y -= e.radius() - dist;
+			break;
+		}
+		}
 
 		if (e instanceof Ball) {
 			if (d.equals(Direction.LEFT)) {

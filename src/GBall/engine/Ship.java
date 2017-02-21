@@ -15,6 +15,23 @@ public class Ship extends Entity implements ControllerListener {
 
 	public final Color color;
 
+	private Ship(Ship s) {
+		super(s.id);
+		position = s.position.clone();
+		velocity = s.velocity.clone();
+		direction = s.direction.clone();
+		acceleration = s.acceleration;
+		dead = s.dead;
+		lastTick = s.lastTick;
+		left = s.left;
+		right = s.right;
+		up = s.up;
+		down = s.down;
+		rotation = s.rotation;
+		braking = s.braking;
+		color = s.color;
+	}
+
 	public Ship(long id, Color color) {
 		super(id);
 		this.color = color;
@@ -89,6 +106,11 @@ public class Ship extends Entity implements ControllerListener {
 	@Override
 	public void onRelease(Direction d) {
 		control(d, false);
+	}
+
+	@Override
+	public Entity clone() {
+		return new Ship(this);
 	}
 
 }

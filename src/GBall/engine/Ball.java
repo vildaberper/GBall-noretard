@@ -3,6 +3,16 @@ package GBall.engine;
 public class Ball extends Entity {
 	private static final long serialVersionUID = 6843930351309156932L;
 
+	private Ball(Ball b) {
+		super(b.id);
+		position = b.position.clone();
+		velocity = b.velocity.clone();
+		direction = b.direction.clone();
+		acceleration = b.acceleration;
+		dead = b.dead;
+		lastTick = b.lastTick;
+	}
+
 	public Ball(long id) {
 		super(id);
 	}
@@ -26,6 +36,11 @@ public class Ball extends Entity {
 	@Override
 	public double maxSpeed() {
 		return Const.BALL_MAX_SPEED;
+	}
+
+	@Override
+	public Entity clone() {
+		return new Ball(this);
 	}
 
 }
