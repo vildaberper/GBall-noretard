@@ -40,5 +40,8 @@ public abstract class Entity implements Serializable {
 	public abstract int radius();
 
 	public abstract double maxSpeed();
+	
+	@Override
+	public abstract Entity clone();
 
 }

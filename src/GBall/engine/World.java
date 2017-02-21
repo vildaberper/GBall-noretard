@@ -1,10 +1,13 @@
 package GBall.engine;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import GBall.engine.Vector2.Direction;
+
+import static GBall.engine.Util.*;
 
 public class World {
 
@@ -16,39 +19,62 @@ public class World {
 
 	}
 
+	public class WorldState implements Serializable {
+		private static final long serialVersionUID = -8005336361056943857L;
+
+		public long lastTick;
+		public double dt = 0.0;
+		public Map<Long, Entity> entities;
+
+		public WorldState(long lastTick, double dt, Map<Long, Entity> entities) {
+			this.lastTick = lastTick;
+			this.dt = dt;
+			this.entities = entities;
+		}
+
+		@Override
+		public WorldState clone() {
+			Map<Long, Entity> nentities = new HashMap<Long, Entity>();
+
+			entities.entrySet().forEach(e -> nentities.put(e.getKey(), e.getValue().clone()));
+
+			return new WorldState(lastTick, dt, nentities);
+		}
+
+	}
+
 	private final WorldListener listener;
 
-	private long lastTick;
-
-	private double dt = 0.0;
-
-	private Map<Long, Entity> entities = new HashMap<Long, Entity>();
+	private WorldState state;
 
 	public World(WorldListener listener) {
 		this.listener = listener;
-		lastTick = Time.getTime();
+		state = new WorldState(Time.getTime(), 0.0, new HashMap<Long, Entity>());
+	}
+
+	public WorldState getState() {
+		return state;
+	}
+
+	public void setState(WorldState state) {
+
 	}
 
 	public void forEachEntity(Consumer<? super Entity> func) {
-		entities.entrySet().forEach(e -> func.accept(e.getValue()));
+		state.entities.entrySet().forEach(e -> func.accept(e.getValue()));
 	}
 
 	public void addEntity(Entity... e) {
 		for (Entity e_ : e)
-			entities.put(e_.id, e_);
+			state.entities.put(e_.id, e_);
 	}
 
 	public void removeAll() {
-		entities.clear();
+		state.entities.clear();
 	}
 
 	public double fps() {
-		return dt > 0.0 ? 1.0 / dt : 0.0;
-	}
-
-	// TODO Move
-	private static double interv(double d1, double d2) {
-		return d1 > d2 ? d1 - d2 : d2 - d1;
+		return state.dt > 0.0 ? 1.0 / state.dt : 0.0;
 	}
 
 	private void checkWallCollision_helper(Entity e, Direction d) {
@@ -80,21 +106,19 @@ public class World {
 		});
 	}
 
-	public void update() {
-		long time = Time.getTime();
-
-		if (time == lastTick)
+	public void update(long time) {
+		if (time == state.lastTick)
 			return;
 
-		dt = (time - lastTick) / 1000.0;
+		state.dt = (time - state.lastTick) / 1000.0;
 
-		entities.entrySet().removeIf(e -> e.getValue().dead);
+		state.entities.entrySet().removeIf(e -> e.getValue().dead);
 
-		forEachEntity(e -> e.tick(dt, time));
+		forEachEntity(e -> e.tick(state.dt, time));
 		forEachEntity(e -> checkWallCollision(e));
 		forEachEntity(e -> checkEntityCollision(e));
 
-		lastTick = time;
+		state.lastTick = time;
 	}
 
 	public void render(GameWindow gw) {

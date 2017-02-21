@@ -2,8 +2,13 @@ package GBall.engine;
 
 import java.awt.Color;
 
-public class Ship extends Entity {
+import GBall.Controller.ControllerListener;
+import GBall.engine.Vector2.Direction;
+
+public class Ship extends Entity implements ControllerListener {
 	private static final long serialVersionUID = 5331656060833494804L;
+
+	public boolean left, right, up, down;
 
 	public int rotation = 0;
 	public boolean braking = false;
@@ -17,6 +22,10 @@ public class Ship extends Entity {
 
 	@Override
 	public void tick(double dt, long time) {
+		acceleration = up ? Const.SHIP_MAX_ACCELERATION : 0;
+		braking = down;
+		rotation = (left ? -1 : 0) + (right ? 1 : 0);
+
 		if (rotation != 0) {
 			direction.rotate(rotation * Const.SHIP_ROTATION * dt);
 			velocity.scale(Const.SHIP_TURN_BRAKE_SCALE, dt);
@@ -49,6 +58,37 @@ public class Ship extends Entity {
 	@Override
 	public double maxSpeed() {
 		return Const.BALL_MAX_SPEED;
+	}
+
+	private void control(Direction d, boolean press) {
+		switch (d) {
+		case UP: {
+			up = press;
+			break;
+		}
+		case DOWN: {
+			down = press;
+			break;
+		}
+		case LEFT: {
+			left = press;
+			break;
+		}
+		case RIGHT: {
+			right = press;
+			break;
+		}
+		}
+	}
+
+	@Override
+	public void onPress(Direction d) {
+		control(d, true);
+	}
+
+	@Override
+	public void onRelease(Direction d) {
+		control(d, false);
 	}
 
 }

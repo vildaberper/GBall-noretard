@@ -2,18 +2,20 @@ package GBall;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 
 import GBall.engine.Ball;
 import GBall.engine.Const;
 import GBall.engine.Entity;
 import GBall.engine.GameWindow;
 import GBall.engine.Ship;
+import GBall.engine.Time;
 import GBall.engine.Vector2;
 import GBall.engine.Vector2.Direction;
 import GBall.engine.World;
 import GBall.engine.GameWindow.GameWindowListener;
 import GBall.engine.World.WorldListener;
+
+import static GBall.engine.Util.*;
 
 public class Game implements WorldListener, GameWindowListener {
 
@@ -41,84 +43,18 @@ public class Game implements WorldListener, GameWindowListener {
 		world.addEntity(s1, s2, s3, s4, b);
 	}
 
-	private boolean left, right, up, down;
-
 	public void run() {
-		gw.addKeyListener(new KeyListener() {
 
-			@Override
-			public void keyPressed(KeyEvent arg0) {
-				switch (arg0.getKeyCode()) {
-				case KeyEvent.VK_LEFT: {
-					left = true;
-					break;
-				}
-				case KeyEvent.VK_RIGHT: {
-					right = true;
-					break;
-				}
-				case KeyEvent.VK_UP: {
-					up = true;
-					break;
-				}
-				case KeyEvent.VK_DOWN: {
-					down = true;
-					break;
-				}
-				}
-			}
-
-			@Override
-			public void keyReleased(KeyEvent arg0) {
-				switch (arg0.getKeyCode()) {
-				case KeyEvent.VK_LEFT: {
-					left = false;
-					break;
-				}
-				case KeyEvent.VK_RIGHT: {
-					right = false;
-					break;
-				}
-				case KeyEvent.VK_UP: {
-					up = false;
-					break;
-				}
-				case KeyEvent.VK_DOWN: {
-					down = false;
-					break;
-				}
-				}
-			}
-
-			@Override
-			public void keyTyped(KeyEvent arg0) {
-
-			}
-
-		});
-
-		/*
-		 * Controller c = new Controller(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT,
-		 * KeyEvent.VK_UP, KeyEvent.VK_DOWN, new ControllerListener(){
-		 * 
-		 * @Override public void onPress(Direction d){ switch(d){ case UP:{
-		 * s1.acceleration = Const.SHIP_MAX_ACCELERATION; break; } } }
-		 * 
-		 * @Override public void onRelease(Direction d){ switch(d){ case UP:{
-		 * s1.acceleration = 0; break; } } }
-		 * 
-		 * }); gw.addKeyListener(c);
-		 */
+		Controller c = new Controller(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN, s1);
+		gw.addKeyListener(c);
 
 		reset();
 
 		while (running) {
-			s1.acceleration = up ? Const.SHIP_MAX_ACCELERATION : 0;
-			s1.braking = down;
-			s1.rotation = (left ? -1 : 0) + (right ? 1 : 0);
-
-			world.update();
+			world.update(Time.getTime());
 			gw.repaint();
+
+			sleep(1.0 / Const.TARGET_FPS);
 		}
 	}
 
