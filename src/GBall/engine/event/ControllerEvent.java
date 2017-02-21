@@ -11,7 +11,8 @@ public class ControllerEvent extends Event {
 
 	public final boolean press;
 
-	public ControllerEvent(long entityId, Direction direction, boolean press) {
+	public ControllerEvent(long timestamp, long entityId, Direction direction, boolean press) {
+		super(timestamp);
 		this.entityId = entityId;
 		this.direction = direction;
 		this.press = press;
