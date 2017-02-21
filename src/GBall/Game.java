@@ -1,7 +1,6 @@
 package GBall;
 
 import java.awt.Color;
-import java.awt.event.KeyEvent;
 
 import GBall.engine.Ball;
 import GBall.engine.Const;
@@ -19,20 +18,14 @@ import static GBall.engine.Util.*;
 
 public class Game implements WorldListener, GameWindowListener {
 
-	private final GameWindow gw;
-
 	private final World world;
 
-	private final Ship s1, s2, s3, s4;
+	public final Ship s1, s2, s3, s4;
 	private final Ball b;
-
-	private boolean running = true;
 
 	private int scoreRed = 0, scoreGreen = 0;
 
 	public Game() {
-		gw = new GameWindow(this);
-
 		s1 = new Ship(0L, Color.RED);
 		s2 = new Ship(1L, Color.RED);
 		s3 = new Ship(2L, Color.GREEN);
@@ -43,19 +36,18 @@ public class Game implements WorldListener, GameWindowListener {
 		world.addEntity(s1, s2, s3, s4, b);
 	}
 
-	public void run() {
+	public GameState getState() {
+		return new GameState(world.getState().clone(), scoreRed, scoreGreen);
+	}
 
-		Controller c = new Controller(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN, s1);
-		gw.addKeyListener(c);
+	public void setState(GameState state) {
+		world.setState(state.worldState);
+		scoreRed = state.scoreRed;
+		scoreGreen = state.scoreGreen;
+	}
 
-		reset();
-
-		while (running) {
-			world.update(Time.getTime());
-			gw.repaint();
-
-			sleep(1.0 / Const.TARGET_FPS);
-		}
+	public void tick() {
+		world.update(Time.getTime());
 	}
 
 	public void reset() {
@@ -88,8 +80,6 @@ public class Game implements WorldListener, GameWindowListener {
 
 	@Override
 	public void onWallCollide(Entity e, Direction d, double dist) {
-		System.out.println("Wall collision");
-
 		e.velocity.invertInDirection(d);
 
 		switch (d) {
@@ -124,8 +114,6 @@ public class Game implements WorldListener, GameWindowListener {
 
 	@Override
 	public void onEntityCollide(Entity e1, Entity e2) {
-		System.out.println("Entity collision");
-
 		Vector2 v = e1.position.clone().add(e2.position.clone().invert());
 		Vector2 vn = v.clone().normalize();
 		double length = v.length();

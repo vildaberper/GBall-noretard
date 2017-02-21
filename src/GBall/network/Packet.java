@@ -5,11 +5,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.DatagramPacket;
 
-public class Packet {
+public class Packet implements Serializable {
+	private static final long serialVersionUID = 5361078578409138060L;
 
-	public static byte[] serialize(Object o) {
+	public static byte[] serialize(Serializable o) {
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -45,7 +47,7 @@ public class Packet {
 		this.data = data;
 	}
 
-	public Packet(Object o) {
+	public Packet(Serializable o) {
 		this(serialize(o));
 	}
 

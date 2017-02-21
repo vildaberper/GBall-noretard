@@ -1,8 +1,6 @@
 package GBall.engine;
 
-import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import GBall.engine.Vector2.Direction;
@@ -16,30 +14,6 @@ public class World {
 		public void onWallCollide(Entity e, Direction d, double dist);
 
 		public void onEntityCollide(Entity e1, Entity e2);
-
-	}
-
-	public class WorldState implements Serializable {
-		private static final long serialVersionUID = -8005336361056943857L;
-
-		public long lastTick;
-		public double dt = 0.0;
-		public Map<Long, Entity> entities;
-
-		public WorldState(long lastTick, double dt, Map<Long, Entity> entities) {
-			this.lastTick = lastTick;
-			this.dt = dt;
-			this.entities = entities;
-		}
-
-		@Override
-		public WorldState clone() {
-			Map<Long, Entity> nentities = new HashMap<Long, Entity>();
-
-			entities.entrySet().forEach(e -> nentities.put(e.getKey(), e.getValue().clone()));
-
-			return new WorldState(lastTick, dt, nentities);
-		}
 
 	}
 
@@ -57,7 +31,7 @@ public class World {
 	}
 
 	public void setState(WorldState state) {
-
+		this.state = state;
 	}
 
 	public void forEachEntity(Consumer<? super Entity> func) {
