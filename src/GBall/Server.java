@@ -25,7 +25,7 @@ public class Server implements ServerSocketListener, SocketListener {
 	private class Client {
 
 		public final Socket socket;
-
+		
 		public Client(Socket socket) {
 			this.socket = socket;
 		}

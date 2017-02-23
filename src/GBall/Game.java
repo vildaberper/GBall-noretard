@@ -26,14 +26,15 @@ public class Game implements WorldListener, GameWindowListener {
 	private int scoreRed = 0, scoreGreen = 0;
 
 	public Game() {
-		s1 = new Ship(0L, Color.RED);
-		s2 = new Ship(1L, Color.RED);
-		s3 = new Ship(2L, Color.GREEN);
-		s4 = new Ship(3L, Color.GREEN);
-		b = new Ball(4L);
-
 		world = new World(this);
-		world.addEntity(s1, s2, s3, s4, b);
+
+		b = new Ball(0L);
+		s1 = new Ship(1L, Color.RED);
+		s2 = new Ship(2L, Color.RED);
+		s3 = new Ship(3L, Color.GREEN);
+		s4 = new Ship(4L, Color.GREEN);
+
+		world.addEntity(b);
 	}
 
 	public GameState getState() {
@@ -44,6 +45,24 @@ public class Game implements WorldListener, GameWindowListener {
 		world.setState(state.worldState);
 		scoreRed = state.scoreRed;
 		scoreGreen = state.scoreGreen;
+	}
+
+	public long addShip() {
+		switch (world.size()) {
+		case 1:
+			world.addEntity(s1);
+			return s1.id;
+		case 2:
+			world.addEntity(s2);
+			return s2.id;
+		case 3:
+			world.addEntity(s3);
+			return s3.id;
+		case 4:
+			world.addEntity(s4);
+			return s4.id;
+		}
+		return -1;
 	}
 
 	public void tick() {
