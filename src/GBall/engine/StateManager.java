@@ -9,16 +9,16 @@ public class StateManager {
 		
 		public void onTimewarp(Snapshot snapshot);
 		
-		public void onEvent(Event event);
+		public void onEvent(Snapshot snapshot);
 	}
 
 	public class Snapshot {
 
-		private final GameState state;
-		private final Event event;		
+		public GameState state;
+		public final Event event;		
 
-		public Snapshot next = null;
-		public Snapshot previous = null;
+		private Snapshot next = null;
+		private Snapshot previous = null;
 
 		public Snapshot(GameState state, Event event) {
 
@@ -39,15 +39,10 @@ public class StateManager {
 		this.listener = listener;
 	}
 	
-	public void tick(long time) {
+	public void step(long time) {
 		
-		while (current.event.timestamp <= time) {
-			
-			listener.onEvent(current.event);
-			
-			if (current.next == null)
-				break;
-			
+		while (current != null && current.event.timestamp <= time) {
+			listener.onEvent(current);
 			current = current.next;
 		}
 		
@@ -66,13 +61,9 @@ public class StateManager {
 		}
 	}
 
-	private void timewarp(Snapshot snapshot) {
-
-		listener.onTimewarp(snapshot);
-		return;
-	}
-
-	public void add(Snapshot snapshot) {
+	public void add(Event event, GameState state) {
+		
+		Snapshot snapshot = new Snapshot(state, event);
 
 		if (first == null) {
 
@@ -87,7 +78,8 @@ public class StateManager {
 		}
 
 		if (snapshot.event.timestamp < current.event.timestamp) {
-			timewarp(insert(snapshot, current));
+			current = insert(snapshot, current);
+			listener.onTimewarp(current);
 			return;
 		}
 

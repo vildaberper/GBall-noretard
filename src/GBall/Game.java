@@ -7,26 +7,35 @@ import GBall.engine.Const;
 import GBall.engine.Entity;
 import GBall.engine.GameWindow;
 import GBall.engine.Ship;
+import GBall.engine.StateManager;
+import GBall.engine.StateManager.Snapshot;
+import GBall.engine.StateManager.StateManagerListener;
 import GBall.engine.Time;
 import GBall.engine.Vector2;
 import GBall.engine.Vector2.Direction;
 import GBall.engine.World;
 import GBall.engine.GameWindow.GameWindowListener;
 import GBall.engine.World.WorldListener;
+import GBall.engine.event.ControllerEvent;
+import GBall.engine.event.Event;
 
 import static GBall.engine.Util.*;
 
-public class Game implements WorldListener, GameWindowListener {
+public class Game implements WorldListener, GameWindowListener, StateManagerListener {
 
 	private final World world;
+	private final StateManager stateManager;
 
 	public final Ship s1, s2, s3, s4;
 	private final Ball b;
+	
+	private long time;
 
 	private int scoreRed = 0, scoreGreen = 0;
 
 	public Game() {
 		world = new World(this);
+		stateManager = new StateManager(this);
 
 		b = new Ball(0L);
 		s1 = new Ship(1L, Color.RED);
@@ -75,7 +84,9 @@ public class Game implements WorldListener, GameWindowListener {
 	}
 
 	public void tick() {
-		world.update(Time.getTime());
+		time = Time.getTime();
+		stateManager.step(time);
+		world.update(time);
 	}
 
 	public void reset() {
@@ -104,6 +115,11 @@ public class Game implements WorldListener, GameWindowListener {
 
 		b.position.x = Const.BALL_X;
 		b.position.y = Const.BALL_Y;
+	}
+	
+	public void pushEvent(Event event) {
+		
+		stateManager.add(event, getState());
 	}
 
 	@Override
@@ -169,6 +185,36 @@ public class Game implements WorldListener, GameWindowListener {
 			gw.setColor(Const.FPS_TEXT_COLOR);
 			gw.drawString(Integer.toString((int) world.fps()), Const.FPS_TEXT_POSITION);
 		}
+	}
+
+	@Override
+	public void onTimewarp(Snapshot snapshot) {
+
+		setState(snapshot.state);
+
+		long currentTime = snapshot.event.timestamp;
+		while(currentTime < time){
+			stateManager.step(currentTime);
+			world.update(currentTime);
+			currentTime += (long) (1000.0 / Const.TARGET_FPS);
+		}		
+	}
+
+	@Override
+	public void onEvent(Snapshot snapshot) {
+
+		if (snapshot.event instanceof ControllerEvent) {
+
+			ControllerEvent ce = (ControllerEvent) snapshot.event;
+
+			if (ce.press)
+				getShip(ce.entityId).onPress(ce.direction);
+			else
+				getShip(ce.entityId).onRelease(ce.direction);
+
+		}
+		
+		snapshot.state = getState();
 	}
 
 }
