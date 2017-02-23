@@ -8,6 +8,7 @@ import GBall.engine.Const;
 import GBall.engine.GameWindow;
 import GBall.engine.Ship;
 import GBall.engine.event.ControllerEvent;
+import GBall.engine.event.Event;
 import GBall.network.Location;
 import GBall.network.Packet;
 import GBall.network.Socket;
@@ -52,9 +53,6 @@ public class Server implements SocketListener {
 
 		while (true) {
 			game.tick();
-
-			clients.entrySet().forEach(e -> socket.send(e.getKey(), new Packet(game.getState())));
-
 			gw.repaint();
 			sleep(1.0 / Const.TARGET_FPS);
 		}
@@ -65,22 +63,25 @@ public class Server implements SocketListener {
 		Client client;
 		if (!clients.containsKey(source)) {
 			client = new Client();
-			if ((client.id = game.addShip()) != -1)
+			if ((client.id = game.addShip()) != -1) {
 				clients.put(source, client);
-			else
+				socket.send(source, new Packet(client.id));
+				socket.send(source, new Packet(game.getState()));
+			} else
 				return;
 		} else
 			client = clients.get(source);
 
-		Ship ship = game.getShip(client.id);
-		ControllerEvent event = (ControllerEvent) packet.getObject();
+		Event event = (Event) packet.getObject();
 
-		if (event.press)
-			ship.onPress(event.direction);
-		else
-			ship.onRelease(event.direction);
+		clients.entrySet().forEach(e -> {
+			if (!e.getValue().equals(client))
+				socket.send(e.getKey(), new Packet(event));
+		});
 
-		System.out.println("potatis");
+		game.pushEvent(event);
+
+		System.out.println("got event");
 	}
 
 }

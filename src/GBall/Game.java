@@ -9,7 +9,7 @@ import GBall.engine.GameWindow;
 import GBall.engine.Ship;
 import GBall.engine.StateManager;
 import GBall.engine.StateManager.Snapshot;
-import GBall.engine.StateManager.StateManagerListener;
+import GBall.engine.StateManager.StateListener;
 import GBall.engine.Time;
 import GBall.engine.Vector2;
 import GBall.engine.Vector2.Direction;
@@ -21,14 +21,14 @@ import GBall.engine.event.Event;
 
 import static GBall.engine.Util.*;
 
-public class Game implements WorldListener, GameWindowListener, StateManagerListener {
+public class Game implements WorldListener, GameWindowListener, StateListener {
 
 	private final World world;
 	private final StateManager stateManager;
 
 	public final Ship s1, s2, s3, s4;
 	private final Ball b;
-	
+
 	private long time;
 
 	private int scoreRed = 0, scoreGreen = 0;
@@ -54,6 +54,10 @@ public class Game implements WorldListener, GameWindowListener, StateManagerList
 		world.setState(state.worldState);
 		scoreRed = state.scoreRed;
 		scoreGreen = state.scoreGreen;
+	}
+
+	public long getTime() {
+		return time;
 	}
 
 	public long addShip() {
@@ -116,9 +120,8 @@ public class Game implements WorldListener, GameWindowListener, StateManagerList
 		b.position.x = Const.BALL_X;
 		b.position.y = Const.BALL_Y;
 	}
-	
+
 	public void pushEvent(Event event) {
-		
 		stateManager.add(event, getState());
 	}
 
@@ -189,31 +192,34 @@ public class Game implements WorldListener, GameWindowListener, StateManagerList
 
 	@Override
 	public void onTimewarp(Snapshot snapshot) {
+		long currentTime = snapshot.event.timestamp;
+
+		System.out.println("timewarp " + (time - currentTime));
 
 		setState(snapshot.state);
-
-		long currentTime = snapshot.event.timestamp;
-		while(currentTime < time){
+		while (currentTime < time) {
 			stateManager.step(currentTime);
 			world.update(currentTime);
 			currentTime += (long) (1000.0 / Const.TARGET_FPS);
-		}		
+		}
 	}
 
 	@Override
 	public void onEvent(Snapshot snapshot) {
-
 		if (snapshot.event instanceof ControllerEvent) {
-
 			ControllerEvent ce = (ControllerEvent) snapshot.event;
 
-			if (ce.press)
-				getShip(ce.entityId).onPress(ce.direction);
-			else
-				getShip(ce.entityId).onRelease(ce.direction);
-
+			if (ce.entityId != -1) {
+				if (ce.press){
+					System.out.println("press");
+					getShip(ce.entityId).onPress(ce.direction);
+				}else{
+					System.out.println("release");
+					getShip(ce.entityId).onRelease(ce.direction);
+				}
+			}
 		}
-		
+
 		snapshot.state = getState();
 	}
 

@@ -10,6 +10,7 @@ import GBall.engine.GameWindow;
 import GBall.engine.Time;
 import GBall.engine.Vector2.Direction;
 import GBall.engine.event.ControllerEvent;
+import GBall.engine.event.Event;
 import GBall.network.Location;
 import GBall.network.Packet;
 import GBall.network.Socket;
@@ -27,6 +28,8 @@ public class Client implements SocketListener, ControllerListener {
 	private final Socket socket;
 
 	private final Location server = new Location("localhost", 25565);
+
+	private long id = -1;
 
 	private final Game game;
 	private final GameWindow gw;
@@ -54,21 +57,35 @@ public class Client implements SocketListener, ControllerListener {
 
 	@Override
 	public void onReceive(Location source, Packet packet) {
-		game.setState((GameState) packet.getObject());
+		Object obj = packet.getObject();
+
+		if (obj instanceof Long) {
+			System.out.println("got id");
+			id = (Long) obj;
+		} else if (obj instanceof Event) {
+			System.out.println("got event");
+			game.pushEvent((Event) obj);
+		} else if (obj instanceof GameState) {
+			System.out.println("got state");
+			game.setState((GameState) obj);
+		}
 	}
 
-	private void sendEvent(Direction d, boolean press) {
-		socket.send(server, new Packet(new ControllerEvent(0L, 0L, d, press)));
+	private void localEvent(Direction d, boolean press) {
+		ControllerEvent event = new ControllerEvent(game.getTime() + 100L, id, d, press);
+
+		game.pushEvent(event);
+		socket.send(server, new Packet(event));
 	}
 
 	@Override
 	public void onPress(Direction d) {
-		sendEvent(d, true);
+		localEvent(d, true);
 	}
 
 	@Override
 	public void onRelease(Direction d) {
-		sendEvent(d, false);
+		localEvent(d, false);
 	}
 
 }
