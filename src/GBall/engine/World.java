@@ -47,6 +47,10 @@ public class World {
 			state.entities.put(e_.id, e_);
 	}
 
+	public Entity getEntity(long id) {
+		return state.entities.get(id);
+	}
+
 	public void clear() {
 		state.entities.clear();
 	}

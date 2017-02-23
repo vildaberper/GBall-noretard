@@ -6,6 +6,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import GBall.engine.Const;
 import GBall.engine.GameWindow;
+import GBall.engine.Ship;
+import GBall.engine.event.ControllerEvent;
 import GBall.network.Location;
 import GBall.network.Packet;
 import GBall.network.ServerSocket;
@@ -25,7 +27,9 @@ public class Server implements ServerSocketListener, SocketListener {
 	private class Client {
 
 		public final Socket socket;
-		
+
+		public long id = -1;
+
 		public Client(Socket socket) {
 			this.socket = socket;
 		}
@@ -59,15 +63,21 @@ public class Server implements ServerSocketListener, SocketListener {
 
 	@Override
 	public void onConnect(Socket socket) {
-		clients.put(socket.location, new Client(socket));
-		socket.open(this);
+		Client client = new Client(socket);
+
+		if ((client.id = game.addShip()) == -1) {
+			clients.put(socket.location, new Client(socket));
+			socket.open(this);
+		} else
+			socket.close();
 	}
 
 	@Override
 	public void onReceive(Location source, Packet packet) {
 		Client client = clients.get(source);
+		Ship ship = game.getShip(client.id);
+		ControllerEvent event = (ControllerEvent) packet.getObject();
 
-		game.setState((GameState) packet.getObject());
 		System.out.println("potatis");
 	}
 

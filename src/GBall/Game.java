@@ -65,6 +65,15 @@ public class Game implements WorldListener, GameWindowListener {
 		return -1;
 	}
 
+	public Ship getShip(long id) {
+		Entity e = world.getEntity(id);
+
+		if (e != null && e instanceof Ship)
+			return (Ship) e;
+
+		return null;
+	}
+
 	public void tick() {
 		world.update(Time.getTime());
 	}

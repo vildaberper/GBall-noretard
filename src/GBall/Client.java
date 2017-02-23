@@ -4,9 +4,12 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
+import GBall.Controller.ControllerListener;
 import GBall.engine.Const;
 import GBall.engine.GameWindow;
 import GBall.engine.Time;
+import GBall.engine.Vector2.Direction;
+import GBall.engine.event.ControllerEvent;
 import GBall.network.Location;
 import GBall.network.Packet;
 import GBall.network.Socket;
@@ -14,7 +17,7 @@ import GBall.network.Socket.SocketListener;
 
 import static GBall.engine.Util.*;
 
-public class Client implements SocketListener {
+public class Client implements SocketListener, ControllerListener {
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
 		Client c = new Client();
@@ -35,27 +38,35 @@ public class Client implements SocketListener {
 	public void run() {
 		socket.open(this);
 
-		Controller c = new Controller(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN, game.s1);
+		Controller c = new Controller(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN, this);
 		gw.addKeyListener(c);
 
 		game.reset();
 
-		long derp = 0;
 		while (true) {
-			long herp = Time.getTime();
 			game.tick();
 			gw.repaint();
 			sleep(1.0 / Const.TARGET_FPS);
-			if (herp - derp > 10) {
-				socket.send(new Packet(game.getState()));
-				derp = herp;
-			}
 		}
 	}
 
 	@Override
 	public void onReceive(Location source, Packet packet) {
+		game.setState((GameState) packet.getObject());
+	}
 
+	private void sendEvent(Direction d, boolean press) {
+		socket.send(new Packet(new ControllerEvent(0L, 0L, d, press)));
+	}
+
+	@Override
+	public void onPress(Direction d) {
+		sendEvent(d, true);
+	}
+
+	@Override
+	public void onRelease(Direction d) {
+		sendEvent(d, false);
 	}
 
 }
