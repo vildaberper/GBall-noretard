@@ -34,6 +34,10 @@ public class World {
 		this.state = state;
 	}
 
+	public int size() {
+		return state.entities.size();
+	}
+
 	public void forEachEntity(Consumer<? super Entity> func) {
 		state.entities.entrySet().forEach(e -> func.accept(e.getValue()));
 	}
@@ -43,7 +47,7 @@ public class World {
 			state.entities.put(e_.id, e_);
 	}
 
-	public void removeAll() {
+	public void clear() {
 		state.entities.clear();
 	}
 
