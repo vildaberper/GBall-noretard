@@ -60,4 +60,7 @@ public final class Const {
 	public final static double BALL_MAX_SPEED = 370.0;
 	public final static double BALL_FRICTION = 0.992;
 	public final static Color BALL_COLOR = Color.WHITE;
+	
+	// Events and states
+	public final static long OUTDATED_THRESHOLD = 1337;
 }
