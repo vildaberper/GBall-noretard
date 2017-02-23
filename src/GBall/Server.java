@@ -88,6 +88,7 @@ public class Server implements SocketListener, GameListener {
 
 	@Override
 	public void onGoal(boolean red) {
+		GoalEvent event = new GoalEvent(game.getFrame(), red);
 		
 		clients.entrySet().forEach(e -> {
 				socket.send(e.getKey(), new Packet(event));
