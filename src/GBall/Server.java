@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import GBall.Game.GameListener;
 import GBall.engine.Const;
 import GBall.engine.GameWindow;
 import GBall.engine.Ship;
 import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
+import GBall.engine.event.GoalEvent;
 import GBall.network.Location;
 import GBall.network.Packet;
 import GBall.network.Socket;
@@ -16,7 +18,7 @@ import GBall.network.Socket.SocketListener;
 
 import static GBall.engine.Util.*;
 
-public class Server implements SocketListener {
+public class Server implements SocketListener, GameListener {
 
 	public static void main(String[] args) throws IOException {
 		Server s = new Server();
@@ -42,7 +44,7 @@ public class Server implements SocketListener {
 
 	public Server() throws IOException {
 		socket = new Socket(25565);
-		game = new Game();
+		game = new Game(this);
 		gw = new GameWindow(game);
 	}
 
@@ -82,6 +84,16 @@ public class Server implements SocketListener {
 		game.pushEvent(event);
 
 		System.out.println("got event");
+	}
+
+	@Override
+	public void onGoal(boolean red) {
+		
+		clients.entrySet().forEach(e -> {
+				socket.send(e.getKey(), new Packet(event));
+		});
+		
+		game.pushEvent(event);
 	}
 
 }

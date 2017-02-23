@@ -17,24 +17,30 @@ import GBall.engine.GameWindow.GameWindowListener;
 import GBall.engine.World.WorldListener;
 import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
+import GBall.engine.event.GoalEvent;
 
 import static GBall.engine.Util.*;
 
-public class Game implements WorldListener, GameWindowListener, StateListener {
 
+public class Game implements WorldListener, GameWindowListener, StateListener {
+	
+	public interface GameListener{
+		void onGoal(boolean red);
+	}
 	private final World world;
 	private final StateManager stateManager;
 
-	public final Ship s1, s2, s3, s4;
-	private final Ball b;
+	public Ship s1, s2, s3, s4;
+	private Ball b;
 
 	private long frame = 0;
 	
 	private int scoreRed = 0, scoreGreen = 0;
-
-	public Game() {
+	private final GameListener listener;
+	public Game(GameListener listener) {
 		world = new World(this);
 		stateManager = new StateManager(this);
+		this.listener = listener;
 
 		b = new Ball(0L);
 		s1 = new Ship(1L, Color.RED);
@@ -54,6 +60,14 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 		scoreRed = state.scoreRed;
 		scoreGreen = state.scoreGreen;
 		frame = state.frame;
+		
+		b = (Ball) world.getEntity(0L);
+		
+		s1 = (getShip(1L) != null) ? getShip(1L) : new Ship(1L, Color.RED);
+		s2 = (getShip(2L) != null) ? getShip(2L) : new Ship(2L, Color.RED);
+		s3 = (getShip(3L) != null) ? getShip(3L) : new Ship(3L, Color.GREEN);
+		s4 = (getShip(4L) != null) ? getShip(4L) : new Ship(4L, Color.GREEN);
+		
 	}
 
 	public long getFrame() {
@@ -151,11 +165,9 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 		if (e instanceof Ball) {
 			if (d.equals(Direction.LEFT)) {
-				++scoreGreen;
-				reset();
+				listener.onGoal(false);
 			} else if (d.equals(Direction.RIGHT)) {
-				++scoreRed;
-				reset();
+				listener.onGoal(true);
 			}
 		}
 	}
@@ -208,6 +220,8 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 	@Override
 	public void onEvent(Snapshot snapshot) {
+		snapshot.state = getState();
+		
 		if (snapshot.event instanceof ControllerEvent) {
 			ControllerEvent ce = (ControllerEvent) snapshot.event;
 
@@ -221,8 +235,19 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 				}
 			}
 		}
+		
+		else if(snapshot.event instanceof GoalEvent){
+			GoalEvent ge = (GoalEvent) snapshot.event;
+			if(ge.red)
+				++scoreRed;
+			else
+				++scoreGreen;
+			
+			reset();
+			System.out.println("Reset, GOAL");
+		}
 
-		snapshot.state = getState();
+		
 	}
 
 }

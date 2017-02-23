@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 
 import GBall.Controller.ControllerListener;
+import GBall.Game.GameListener;
 import GBall.engine.Const;
 import GBall.engine.GameWindow;
 import GBall.engine.Time;
@@ -18,7 +19,7 @@ import GBall.network.Socket.SocketListener;
 
 import static GBall.engine.Util.*;
 
-public class Client implements SocketListener, ControllerListener {
+public class Client implements SocketListener, ControllerListener, GameListener {
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
 		Client c = new Client();
@@ -28,6 +29,7 @@ public class Client implements SocketListener, ControllerListener {
 	private final Socket socket;
 
 	private final Location server = new Location("vildaberper.no-ip.org", 25565);
+	//private final Location server = new Location("localhost", 25565);
 
 	private long id = -1;
 
@@ -38,7 +40,7 @@ public class Client implements SocketListener, ControllerListener {
 
 	public Client() throws UnknownHostException, IOException {
 		socket = new Socket();
-		game = new Game();
+		game = new Game(this);
 		gw = new GameWindow(game);
 	}
 
@@ -99,6 +101,12 @@ public class Client implements SocketListener, ControllerListener {
 	@Override
 	public void onRelease(Direction d) {
 		localEvent(d, false);
+	}
+
+	@Override
+	public void onGoal(boolean red) {
+		//DO NOTHING GOALS ARE HANDLED BY SERVER
+		
 	}
 
 }
