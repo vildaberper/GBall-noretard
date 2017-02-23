@@ -7,6 +7,7 @@ import java.net.UnknownHostException;
 import GBall.Controller.ControllerListener;
 import GBall.engine.Const;
 import GBall.engine.GameWindow;
+import GBall.engine.Time;
 import GBall.engine.Vector2.Direction;
 import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
@@ -30,6 +31,8 @@ public class Client implements SocketListener, ControllerListener {
 
 	private long id = -1;
 
+	private long startTime = -1;
+
 	private final Game game;
 	private final GameWindow gw;
 
@@ -48,9 +51,19 @@ public class Client implements SocketListener, ControllerListener {
 		game.reset();
 
 		while (true) {
+			if (startTime == -1) {
+				gw.repaint();
+				sleep(Const.FRAME_INCREMENT);
+				continue;
+			}
+
 			game.tick();
 			gw.repaint();
-			sleep(Const.FRAME_INCREMENT);
+
+			long timeToSleep = Time.getTime() - (startTime + game.getFrame() * Const.FRAME_INCREMENT);
+
+			if (timeToSleep > 0)
+				sleep(timeToSleep);
 		}
 	}
 
@@ -67,6 +80,7 @@ public class Client implements SocketListener, ControllerListener {
 		} else if (obj instanceof GameState) {
 			System.out.println("got state");
 			game.setState((GameState) obj);
+			startTime = Time.getTime() - game.getFrame() * Const.FRAME_INCREMENT;
 		}
 	}
 

@@ -29,7 +29,7 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	private final Ball b;
 
 	private long frame = 0;
-
+	
 	private int scoreRed = 0, scoreGreen = 0;
 
 	public Game() {
