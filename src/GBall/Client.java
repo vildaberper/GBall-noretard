@@ -26,7 +26,7 @@ public class Client implements SocketListener, ControllerListener {
 
 	private final Socket socket;
 
-	private final Location server = new Location("localhost", 25565);
+	private final Location server = new Location("vildaberper.no-ip.org", 25565);
 
 	private long id = -1;
 
