@@ -66,7 +66,7 @@ public class Server implements SocketListener {
 			if ((client.id = game.addShip()) != -1) {
 				clients.put(source, client);
 				socket.send(source, new Packet(client.id));
-				socket.send(source, new Packet(game.getState()));
+				clients.entrySet().forEach(e -> socket.send(e.getKey(), new Packet(game.getState())));
 			} else
 				return;
 		} else

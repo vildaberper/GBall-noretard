@@ -60,7 +60,7 @@ public class Client implements SocketListener, ControllerListener {
 			game.tick();
 			gw.repaint();
 
-			long timeToSleep = Time.getTime() - (startTime + game.getFrame() * Const.FRAME_INCREMENT);
+			long timeToSleep = (startTime + game.getFrame() * Const.FRAME_INCREMENT) - Time.getTime();
 
 			if (timeToSleep > 0)
 				sleep(timeToSleep);
