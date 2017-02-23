@@ -10,7 +10,6 @@ import GBall.engine.Ship;
 import GBall.engine.StateManager;
 import GBall.engine.StateManager.Snapshot;
 import GBall.engine.StateManager.StateListener;
-import GBall.engine.Time;
 import GBall.engine.Vector2;
 import GBall.engine.Vector2.Direction;
 import GBall.engine.World;
@@ -29,7 +28,7 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	public final Ship s1, s2, s3, s4;
 	private final Ball b;
 
-	private long time;
+	private long frame = 0;
 
 	private int scoreRed = 0, scoreGreen = 0;
 
@@ -47,17 +46,18 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	}
 
 	public GameState getState() {
-		return new GameState(world.getState().clone(), scoreRed, scoreGreen);
+		return new GameState(world.getState().clone(), scoreRed, scoreGreen, frame);
 	}
 
 	public void setState(GameState state) {
 		world.setState(state.worldState);
 		scoreRed = state.scoreRed;
 		scoreGreen = state.scoreGreen;
+		frame = state.frame;
 	}
 
-	public long getTime() {
-		return time;
+	public long getFrame() {
+		return frame;
 	}
 
 	public long addShip() {
@@ -88,9 +88,10 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	}
 
 	public void tick() {
-		time = Time.getTime();
-		stateManager.step(time);
-		world.update(time);
+		stateManager.step(frame);
+		stateManager.clean();
+		world.update(frame);
+		++frame;
 	}
 
 	public void reset() {
@@ -186,21 +187,22 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 		if (Const.SHOW_FPS) {
 			gw.setColor(Const.FPS_TEXT_COLOR);
-			gw.drawString(Integer.toString((int) world.fps()), Const.FPS_TEXT_POSITION);
+			// gw.drawString(Integer.toString((int) world.fps()),
+			// Const.FPS_TEXT_POSITION);
 		}
 	}
 
 	@Override
 	public void onTimewarp(Snapshot snapshot) {
-		long currentTime = snapshot.event.timestamp;
+		long currentFrame = snapshot.event.framestamp;
 
-		System.out.println("timewarp " + (time - currentTime));
+		System.out.println("timewarp " + (frame - currentFrame));
 
 		setState(snapshot.state);
-		while (currentTime < time) {
-			stateManager.step(currentTime);
-			world.update(currentTime);
-			currentTime += (long) (1000.0 / Const.TARGET_FPS);
+		while (currentFrame < frame) {
+			stateManager.step(currentFrame);
+			world.update(currentFrame);
+			++currentFrame;
 		}
 	}
 
@@ -210,10 +212,10 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 			ControllerEvent ce = (ControllerEvent) snapshot.event;
 
 			if (ce.entityId != -1) {
-				if (ce.press){
+				if (ce.press) {
 					System.out.println("press");
 					getShip(ce.entityId).onPress(ce.direction);
-				}else{
+				} else {
 					System.out.println("release");
 					getShip(ce.entityId).onRelease(ce.direction);
 				}

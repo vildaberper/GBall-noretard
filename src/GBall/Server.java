@@ -54,7 +54,7 @@ public class Server implements SocketListener {
 		while (true) {
 			game.tick();
 			gw.repaint();
-			sleep(1.0 / Const.TARGET_FPS);
+			sleep(Const.FRAME_INCREMENT);
 		}
 	}
 

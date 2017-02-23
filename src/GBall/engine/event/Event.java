@@ -5,10 +5,10 @@ import java.io.Serializable;
 public abstract class Event implements Serializable {
 	private static final long serialVersionUID = 6091575079684803289L;
 
-	public final long timestamp;
+	public final long framestamp;
 
-	protected Event(long timestamp) {
-		this.timestamp = timestamp;
+	protected Event(long framestamp) {
+		this.framestamp = framestamp;
 	}
 
 }

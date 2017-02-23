@@ -9,8 +9,7 @@ public class Ball extends Entity {
 		velocity = b.velocity.clone();
 		direction = b.direction.clone();
 		acceleration = b.acceleration;
-		dead = b.dead;
-		lastTick = b.lastTick;
+		lastFrame = b.lastFrame;
 	}
 
 	public Ball(long id) {

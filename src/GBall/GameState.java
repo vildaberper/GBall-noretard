@@ -9,11 +9,13 @@ public class GameState implements Serializable {
 
 	public final WorldState worldState;
 	public final int scoreRed, scoreGreen;
+	public final long frame;
 
-	public GameState(WorldState worldState, int scoreRed, int scoreGreen) {
+	public GameState(WorldState worldState, int scoreRed, int scoreGreen, long frame) {
 		this.worldState = worldState;
 		this.scoreRed = scoreRed;
 		this.scoreGreen = scoreGreen;
+		this.frame = frame;
 	}
 
 }

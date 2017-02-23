@@ -7,7 +7,6 @@ import java.net.UnknownHostException;
 import GBall.Controller.ControllerListener;
 import GBall.engine.Const;
 import GBall.engine.GameWindow;
-import GBall.engine.Time;
 import GBall.engine.Vector2.Direction;
 import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
@@ -51,7 +50,7 @@ public class Client implements SocketListener, ControllerListener {
 		while (true) {
 			game.tick();
 			gw.repaint();
-			sleep(1.0 / Const.TARGET_FPS);
+			sleep(Const.FRAME_INCREMENT);
 		}
 	}
 
@@ -72,7 +71,7 @@ public class Client implements SocketListener, ControllerListener {
 	}
 
 	private void localEvent(Direction d, boolean press) {
-		ControllerEvent event = new ControllerEvent(game.getTime() + 100L, id, d, press);
+		ControllerEvent event = new ControllerEvent(game.getFrame() + Const.LOCAL_DELAY, id, d, press);
 
 		game.pushEvent(event);
 		socket.send(server, new Packet(event));

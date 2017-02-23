@@ -2,9 +2,9 @@ package GBall.engine;
 
 public class Util {
 
-	public static boolean sleep(double seconds) {
+	public static boolean sleep(long millis) {
 		try {
-			Thread.sleep((long) (1000.0 * seconds));
+			Thread.sleep(millis);
 		} catch (InterruptedException e) {
 			return false;
 		}

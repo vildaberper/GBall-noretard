@@ -6,13 +6,11 @@ import java.util.HashMap;
 public class WorldState implements Serializable {
 	private static final long serialVersionUID = -8005336361056943857L;
 
-	public long lastTick;
-	public double dt = 0.0;
+	public long frame;
 	public HashMap<Long, Entity> entities;
 
-	public WorldState(long lastTick, double dt, HashMap<Long, Entity> entities) {
-		this.lastTick = lastTick;
-		this.dt = dt;
+	public WorldState(long frame, HashMap<Long, Entity> entities) {
+		this.frame = frame;
 		this.entities = entities;
 	}
 
@@ -22,7 +20,7 @@ public class WorldState implements Serializable {
 
 		entities.entrySet().forEach(e -> nentities.put(e.getKey(), e.getValue().clone()));
 
-		return new WorldState(lastTick, dt, nentities);
+		return new WorldState(frame, nentities);
 	}
 
 }

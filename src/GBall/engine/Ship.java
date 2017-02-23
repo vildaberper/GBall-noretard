@@ -21,8 +21,7 @@ public class Ship extends Entity implements ControllerListener {
 		velocity = s.velocity.clone();
 		direction = s.direction.clone();
 		acceleration = s.acceleration;
-		dead = s.dead;
-		lastTick = s.lastTick;
+		lastFrame = s.lastFrame;
 		left = s.left;
 		right = s.right;
 		up = s.up;
@@ -38,7 +37,7 @@ public class Ship extends Entity implements ControllerListener {
 	}
 
 	@Override
-	public void tick(double dt, long time) {
+	public void tick(double dt, long frame) {
 		acceleration = up ? Const.SHIP_MAX_ACCELERATION : 0;
 		braking = down;
 		rotation = (left ? -1 : 0) + (right ? 1 : 0);
@@ -52,7 +51,7 @@ public class Ship extends Entity implements ControllerListener {
 			acceleration = 0.0;
 		}
 
-		super.tick(dt, time);
+		super.tick(dt, frame);
 	}
 
 	@Override

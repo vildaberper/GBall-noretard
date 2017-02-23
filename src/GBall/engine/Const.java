@@ -6,7 +6,11 @@ import java.awt.Font;
 public final class Const {
 	// World-related constants
 	public final static double TARGET_FPS = 50;
-	public final static double FRAME_INCREMENT = 1000 / TARGET_FPS;
+	public final static long FRAME_INCREMENT = (long) (1000.0 / TARGET_FPS);
+	public final static double DT = FRAME_INCREMENT / 1000.0;
+	
+	public final static long LOCAL_DELAY = 100L / FRAME_INCREMENT;
+
 	public final static String APP_NAME = "Rocket League för hemmafruar";
 	public final static int DISPLAY_WIDTH = 1024;
 	public final static int DISPLAY_HEIGHT = 758;
@@ -43,16 +47,20 @@ public final class Const {
 	public final static int SHIP_RADIUS = 22;
 	public final static double SHIP_MAX_ACCELERATION = 400.0;
 	public final static double SHIP_MAX_SPEED = 370.0;
-	public final static double SHIP_BRAKE_SCALE = 0.978; // Scale speed by this factor
-													// (per frame) when braking
-	public final static double SHIP_TURN_BRAKE_SCALE = 0.99; // Scale speed by this
-														// factor (per frame)
-														// when turning
-	public final static double SHIP_FRICTION = 0.99; // Scale speed by this factor (per
-												// frame) when not accelerating
-	public final static double SHIP_ROTATION = 0.067 * 50.0; // Rotate ship by this many
-												// radians (per frame) when
-												// turning
+	public final static double SHIP_BRAKE_SCALE = 0.978; // Scale speed by this
+															// factor
+	// (per frame) when braking
+	public final static double SHIP_TURN_BRAKE_SCALE = 0.99; // Scale speed by
+																// this
+	// factor (per frame)
+	// when turning
+	public final static double SHIP_FRICTION = 0.99; // Scale speed by this
+														// factor (per
+	// frame) when not accelerating
+	public final static double SHIP_ROTATION = 0.067 * 50.0; // Rotate ship by
+																// this many
+	// radians (per frame) when
+	// turning
 
 	// Ball-related constants
 	public final static int BALL_RADIUS = 18;
@@ -60,7 +68,7 @@ public final class Const {
 	public final static double BALL_MAX_SPEED = 370.0;
 	public final static double BALL_FRICTION = 0.992;
 	public final static Color BALL_COLOR = Color.WHITE;
-	
+
 	// Events and states
-	public final static long OUTDATED_THRESHOLD = 1337;
+	public final static long OUTDATED_THRESHOLD = 10000L / FRAME_INCREMENT;
 }

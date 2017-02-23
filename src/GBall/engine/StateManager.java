@@ -38,13 +38,11 @@ public class StateManager {
 		this.listener = listener;
 	}
 
-	public void step(long time) {
-		while (current != null && current.event.timestamp <= time) {
+	public void step(long frame) {
+		while (current != null && current.event.framestamp <= frame) {
 			listener.onEvent(current);
 			current = current.next;
 		}
-
-		removeOld(time);
 	}
 
 	private void decouple(Snapshot s) {
@@ -69,8 +67,17 @@ public class StateManager {
 		couple(s2, s3);
 	}
 
-	private void removeOld(long time) {
-		while (first != null && (time - first.event.timestamp) > Const.OUTDATED_THRESHOLD) {
+	public void clean() {
+		long frame = 0;
+
+		if (current != null)
+			frame = current.event.framestamp;
+		else if (last != null)
+			frame = last.event.framestamp;
+		else
+			return;
+
+		while (first != null && (frame - first.event.framestamp) > Const.OUTDATED_THRESHOLD) {
 			Snapshot temp = first.next;
 			decouple(first);
 			first = temp;
@@ -86,13 +93,12 @@ public class StateManager {
 		}
 
 		if (current == null) {
-			couple(last, current = snapshot);
-			last = current;
+			couple(last, last = current = snapshot);
 			return;
 		}
 
 		Snapshot tmp = last;
-		while (snapshot.event.timestamp < tmp.event.timestamp) {
+		while (snapshot.event.framestamp < tmp.event.framestamp) {
 			if ((tmp = tmp.previous) == null) {
 				System.out.println("shit fucked up");
 				return;
@@ -103,7 +109,7 @@ public class StateManager {
 		} else
 			couple(tmp, snapshot, tmp.next);
 
-		if (current.event.timestamp > snapshot.event.timestamp)
+		if (current.event.framestamp > snapshot.event.framestamp)
 			listener.onTimewarp(current = tmp);
 	}
 

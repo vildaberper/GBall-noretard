@@ -23,7 +23,7 @@ public class World {
 
 	public World(WorldListener listener) {
 		this.listener = listener;
-		state = new WorldState(Time.getTime(), 0.0, new HashMap<Long, Entity>());
+		state = new WorldState(0L, new HashMap<Long, Entity>());
 	}
 
 	public WorldState getState() {
@@ -53,10 +53,6 @@ public class World {
 
 	public void clear() {
 		state.entities.clear();
-	}
-
-	public double fps() {
-		return state.dt > 0.0 ? 1.0 / state.dt : 0.0;
 	}
 
 	private void checkWallCollision_helper(Entity e, Direction d, double dist) {
@@ -90,25 +86,17 @@ public class World {
 		});
 	}
 
-	public void update(long time) {
-		if (time == state.lastTick)
-			return;
-
-		state.dt = (time - state.lastTick) / 1000.0;
-
-		state.entities.entrySet().removeIf(e -> e.getValue().dead);
-
-		forEachEntity(e -> e.tick(state.dt, time));
-		forEachEntity(e -> checkWallCollision(e));
-		forEachEntity(e -> checkEntityCollision(e));
-
-		state.lastTick = time;
+	public void update(long frame) {
+		while (state.frame < frame) {
+			forEachEntity(e -> e.tick(Const.DT, frame));
+			forEachEntity(e -> checkWallCollision(e));
+			forEachEntity(e -> checkEntityCollision(e));
+			++state.frame;
+		}
 	}
 
 	public void render(GameWindow gw) {
-		long time = Time.getTime();
-
-		forEachEntity(e -> e.render(gw, time));
+		forEachEntity(e -> e.render(gw, state.frame));
 	}
 
 }

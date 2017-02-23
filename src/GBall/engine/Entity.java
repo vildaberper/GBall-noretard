@@ -11,15 +11,13 @@ public abstract class Entity implements Serializable {
 
 	public double acceleration = 0.0;
 
-	public boolean dead = false;
-
-	public long lastTick = 0;
+	public long lastFrame = 0;
 
 	protected Entity(long id) {
 		this.id = id;
 	}
 
-	public void tick(double dt, long time) {
+	public void tick(double dt, long frame) {
 		if (acceleration > 0.0)
 			velocity.add(direction.clone().scale(acceleration * dt));
 		else
@@ -30,7 +28,7 @@ public abstract class Entity implements Serializable {
 
 		position.add(velocity.clone().scale(dt));
 
-		lastTick = time;
+		lastFrame = frame;
 	}
 
 	public abstract void render(GameWindow gw, long time);
