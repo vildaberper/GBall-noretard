@@ -56,6 +56,9 @@ public class Server implements ServerSocketListener, SocketListener {
 
 		while (true) {
 			game.tick();
+
+			clients.entrySet().forEach(e -> e.getValue().socket.send(new Packet(game.getState())));
+
 			gw.repaint();
 			sleep(1.0 / Const.TARGET_FPS);
 		}
@@ -65,8 +68,8 @@ public class Server implements ServerSocketListener, SocketListener {
 	public void onConnect(Socket socket) {
 		Client client = new Client(socket);
 
-		if ((client.id = game.addShip()) == -1) {
-			clients.put(socket.location, new Client(socket));
+		if ((client.id = game.addShip()) != -1) {
+			clients.put(socket.location, client);
 			socket.open(this);
 		} else
 			socket.close();
@@ -77,6 +80,11 @@ public class Server implements ServerSocketListener, SocketListener {
 		Client client = clients.get(source);
 		Ship ship = game.getShip(client.id);
 		ControllerEvent event = (ControllerEvent) packet.getObject();
+
+		if (event.press)
+			ship.onPress(event.direction);
+		else
+			ship.onRelease(event.direction);
 
 		System.out.println("potatis");
 	}

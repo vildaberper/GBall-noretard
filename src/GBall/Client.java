@@ -30,7 +30,7 @@ public class Client implements SocketListener, ControllerListener {
 	private final GameWindow gw;
 
 	public Client() throws UnknownHostException, IOException {
-		socket = new Socket(new Location("localhost", 25000));
+		socket = new Socket(new Location("193.10.180.171", 25000));
 		game = new Game();
 		gw = new GameWindow(game);
 	}

@@ -35,7 +35,8 @@ public class ServerSocket {
 	}
 
 	public void close() {
-		receiveThread.interrupt();
+		if (receiveThread != null)
+			receiveThread.interrupt();
 		try {
 			socket.close();
 		} catch (IOException e) {
