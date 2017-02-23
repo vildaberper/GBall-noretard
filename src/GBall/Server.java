@@ -44,7 +44,7 @@ public class Server implements ServerSocketListener, SocketListener {
 	private final GameWindow gw;
 
 	public Server() throws IOException {
-		socket = new ServerSocket(25000);
+		socket = new ServerSocket(25565);
 		game = new Game();
 		gw = new GameWindow(game);
 	}
