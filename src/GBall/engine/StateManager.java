@@ -53,19 +53,11 @@ public class StateManager {
 	}
 
 	private Snapshot insert(Snapshot snapshot, Snapshot startAt) {
-		//If the event timestamp is less then the first snapshot. Set the new snapshot as first.
-		if(snapshot.event.timestamp < first.event.timestamp){
-			first.previous = snapshot;
-			snapshot.next = first;
-			first = snapshot;
-			return snapshot;
-		}
-			
+
 		Snapshot it = startAt;
-		while (it.event.timestamp > snapshot.event.timestamp){
+		while (it.event.timestamp > snapshot.event.timestamp) {
 			it = it.previous;
 		}
-			
 
 		snapshot.next = it.next;
 		snapshot.previous = it;
