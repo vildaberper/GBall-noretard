@@ -51,6 +51,12 @@ public class Packet implements Serializable {
 		this(serialize(o));
 	}
 
+	public Packet(DatagramPacket datagramPacket) {
+		data = new byte[datagramPacket.getLength()];
+		System.arraycopy(datagramPacket.getData(), datagramPacket.getOffset(), data, 0,
+				datagramPacket.getLength());
+	}
+
 	public Object getObject() {
 		return desieralize(getData());
 	}

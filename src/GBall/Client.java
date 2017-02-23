@@ -26,11 +26,13 @@ public class Client implements SocketListener, ControllerListener {
 
 	private final Socket socket;
 
+	private final Location server = new Location("localhost", 25565);
+
 	private final Game game;
 	private final GameWindow gw;
 
 	public Client() throws UnknownHostException, IOException {
-		socket = new Socket(new Location("tfbs.no-ip.org", 25565));
+		socket = new Socket();
 		game = new Game();
 		gw = new GameWindow(game);
 	}
@@ -56,7 +58,7 @@ public class Client implements SocketListener, ControllerListener {
 	}
 
 	private void sendEvent(Direction d, boolean press) {
-		socket.send(new Packet(new ControllerEvent(0L, 0L, d, press)));
+		socket.send(server, new Packet(new ControllerEvent(0L, 0L, d, press)));
 	}
 
 	@Override
