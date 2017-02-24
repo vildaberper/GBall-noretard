@@ -1,24 +1,26 @@
 package GBall;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import GBall.Game.GameListener;
 import GBall.engine.Const;
 import GBall.engine.GameWindow;
-import GBall.engine.Ship;
-import GBall.engine.event.ControllerEvent;
+import GBall.engine.Time;
 import GBall.engine.event.Event;
 import GBall.engine.event.GoalEvent;
 import GBall.network.Location;
 import GBall.network.Packet;
-import GBall.network.Socket;
-import GBall.network.Socket.SocketListener;
+import GBall.network.SocketListener;
+import GBall.network.TCPServerSocket;
+import GBall.network.TCPServerSocket.TCPServerSocketListener;
+import GBall.network.TCPSocket;
 
 import static GBall.engine.Util.*;
 
-public class Server implements SocketListener, GameListener {
+public class Server implements SocketListener, GameListener, TCPServerSocketListener {
 
 	public static void main(String[] args) throws IOException {
 		Server s = new Server();
@@ -29,21 +31,25 @@ public class Server implements SocketListener, GameListener {
 
 		public long id = -1;
 
-		public Client() {
+		public final TCPSocket socket;
 
+		public Client(TCPSocket socket) {
+			this.socket = socket;
 		}
 
 	}
 
 	private Map<Location, Client> clients = new ConcurrentHashMap<Location, Client>();
 
-	private final Socket socket;
+	private final TCPServerSocket socket;
+
+	private long startTime;
 
 	private final Game game;
 	private final GameWindow gw;
 
 	public Server() throws IOException {
-		socket = new Socket(25565);
+		socket = new TCPServerSocket(25565);
 		game = new Game(this);
 		gw = new GameWindow(game);
 	}
@@ -52,49 +58,77 @@ public class Server implements SocketListener, GameListener {
 		socket.open(this);
 
 		game.reset();
+		game.saveState();
 
+		startTime = Time.getTime();
+		System.out.println("startTime=" + startTime);
 		while (true) {
-			game.tick();
+			/*
+			 * if (game.getFrame() % Const.PERIODIC_STATES == 0L)
+			 * broadcast(game.getState());
+			 */
+			synchronized (game) {
+				game.tick();
+			}
 			gw.repaint();
-			sleep(Const.FRAME_INCREMENT);
+
+			long timeToSleep = startTime + game.getFrame() * Const.FRAME_INCREMENT - Time.getTime();
+
+			if (timeToSleep > 0)
+				sleep(timeToSleep);
 		}
+	}
+
+	private void broadcast(Serializable s, Client... except) {
+		clients.entrySet().forEach(e -> {
+			for (Client c : except)
+				if (e.getValue().equals(c))
+					return;
+
+			e.getValue().socket.send(new Packet(s));
+		});
 	}
 
 	@Override
 	public void onReceive(Location source, Packet packet) {
-		Client client;
-		if (!clients.containsKey(source)) {
-			client = new Client();
-			if ((client.id = game.addShip()) != -1) {
-				clients.put(source, client);
-				socket.send(source, new Packet(client.id));
-				clients.entrySet().forEach(e -> socket.send(e.getKey(), new Packet(game.getState())));
-			} else
-				return;
-		} else
-			client = clients.get(source);
+		Client client = clients.get(source);
 
 		Event event = (Event) packet.getObject();
 
-		clients.entrySet().forEach(e -> {
-			if (!e.getValue().equals(client))
-				socket.send(e.getKey(), new Packet(event));
-		});
+		broadcast(event, client);
+		synchronized (game) {
+			game.pushEvent(event);
+		}
 
-		game.pushEvent(event);
-
-		System.out.println("got event");
+		// System.out.println("got event");
 	}
 
 	@Override
 	public void onGoal(boolean red) {
 		GoalEvent event = new GoalEvent(game.getFrame(), red);
-		
-		clients.entrySet().forEach(e -> {
-				socket.send(e.getKey(), new Packet(event));
-		});
-		
-		game.pushEvent(event);
+
+		broadcast(event);
+		synchronized (game) {
+			game.pushEvent(event);
+		}
+	}
+
+	@Override
+	public void onConnect(TCPSocket socket) {
+		Client client = new Client(socket);
+		if ((client.id = game.addShip()) != -1) {
+			clients.put(socket.location, client);
+			socket.open(this);
+			socket.send(new Packet(startTime));
+			socket.send(new Packet(client.id));
+			GameState ga;
+			synchronized (game) {
+				ga = game.getState().clone();
+				game.saveState();
+			}
+			broadcast(ga);
+		} else
+			socket.close();
 	}
 
 }

@@ -17,7 +17,7 @@ public class Ball extends Entity {
 	}
 
 	@Override
-	public void render(GameWindow gw, long time) {
+	public void render(GameWindow gw, long frame) {
 		gw.setColor(Const.BALL_COLOR);
 		gw.drawCircle(position, radius());
 	}

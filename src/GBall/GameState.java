@@ -18,4 +18,8 @@ public class GameState implements Serializable {
 		this.frame = frame;
 	}
 
+	public GameState clone() {
+		return new GameState(worldState.clone(), scoreRed, scoreGreen, frame);
+	}
+
 }

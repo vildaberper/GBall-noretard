@@ -10,4 +10,9 @@ public class GoalEvent extends Event {
 		this.red = red;
 	}
 
+	@Override
+	public String toString() {
+		return "GoalEvent - " + framestamp + " " + red;
+	}
+
 }

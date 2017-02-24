@@ -10,5 +10,8 @@ public abstract class Event implements Serializable {
 	protected Event(long framestamp) {
 		this.framestamp = framestamp;
 	}
+	
+	@Override
+	public abstract String toString();
 
 }

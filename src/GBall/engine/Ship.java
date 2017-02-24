@@ -8,7 +8,7 @@ import GBall.engine.Vector2.Direction;
 public class Ship extends Entity implements ControllerListener {
 	private static final long serialVersionUID = 5331656060833494804L;
 
-	public boolean left, right, up, down;
+	public boolean left = false, right = false, up = false, down = false;
 
 	public int rotation = 0;
 	public boolean braking = false;
@@ -55,7 +55,7 @@ public class Ship extends Entity implements ControllerListener {
 	}
 
 	@Override
-	public void render(GameWindow gw, long time) {
+	public void render(GameWindow gw, long frame) {
 		gw.setColor(color);
 		gw.drawCircle(position, radius());
 		gw.drawLine(position, direction.angle(), radius());

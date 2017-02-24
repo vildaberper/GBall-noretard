@@ -31,14 +31,14 @@ public abstract class Entity implements Serializable {
 		lastFrame = frame;
 	}
 
-	public abstract void render(GameWindow gw, long time);
+	public abstract void render(GameWindow gw, long frame);
 
 	public abstract double friction();
 
 	public abstract int radius();
 
 	public abstract double maxSpeed();
-	
+
 	@Override
 	public abstract Entity clone();
 

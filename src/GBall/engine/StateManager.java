@@ -21,7 +21,7 @@ public class StateManager {
 		private Snapshot next = null;
 		private Snapshot previous = null;
 
-		public Snapshot(GameState state, Event event) {
+		private Snapshot(GameState state, Event event) {
 			this.state = state;
 			this.event = event;
 		}
@@ -34,6 +34,8 @@ public class StateManager {
 	private Snapshot first;
 	private Snapshot last;
 
+	private long frame = 0;
+
 	public StateManager(StateListener listener) {
 		this.listener = listener;
 	}
@@ -43,6 +45,7 @@ public class StateManager {
 			listener.onEvent(current);
 			current = current.next;
 		}
+		this.frame = frame;
 	}
 
 	private void decouple(Snapshot s) {
@@ -68,16 +71,7 @@ public class StateManager {
 	}
 
 	public void clean() {
-		long frame = 0;
-
-		if (current != null)
-			frame = current.event.framestamp;
-		else if (last != null)
-			frame = last.event.framestamp;
-		else
-			return;
-
-		while (first != null && (frame - first.event.framestamp) > Const.OUTDATED_THRESHOLD) {
+		while (first != null && first != last && (frame - first.event.framestamp) > Const.OUTDATED_THRESHOLD) {
 			Snapshot temp = first.next;
 			decouple(first);
 			first = temp;
@@ -85,6 +79,10 @@ public class StateManager {
 	}
 
 	public void add(Event event, GameState state) {
+		if (event.framestamp <= frame) {
+			System.out.println("i should timewarp");
+		}
+
 		Snapshot snapshot = new Snapshot(state, event);
 
 		if (first == null) {
@@ -92,25 +90,48 @@ public class StateManager {
 			return;
 		}
 
-		if (current == null) {
-			couple(last, last = current = snapshot);
+		if (last.event.framestamp < event.framestamp) {
+			couple(last, snapshot);
+			last = snapshot;
+			if (event.framestamp <= frame)
+				listener.onTimewarp(current = last.previous);
+			else if(current == null)
+				current = last;
 			return;
 		}
 
 		Snapshot tmp = last;
-		while (snapshot.event.framestamp < tmp.event.framestamp) {
+		while (tmp.event.framestamp > snapshot.event.framestamp)
 			if ((tmp = tmp.previous) == null) {
 				System.out.println("shit fucked up");
 				return;
 			}
-		}
-		if (tmp.next == null) {
-			couple(tmp, last = snapshot);
-		} else
-			couple(tmp, snapshot, tmp.next);
 
-		if (current.event.framestamp > snapshot.event.framestamp)
+		couple(tmp, snapshot, tmp.next);
+
+		if (snapshot.event.framestamp <= frame) {
+			System.out.println("snapshot:" + snapshot.event.toString());
+			System.out.println("tmp:" + tmp.event.toString());
 			listener.onTimewarp(current = tmp);
+		}
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+
+		Snapshot s = first;
+		while (s != null) {
+			if (s.equals(current))
+				sb.append('>');
+			sb.append(s.event.toString());
+			if (s.state == null)
+				sb.append(" - null state");
+			sb.append('\n');
+			s = s.next;
+		}
+
+		return sb.toString();
 	}
 
 }

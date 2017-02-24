@@ -6,7 +6,21 @@ public class Vector2 implements Serializable {
 	private static final long serialVersionUID = -6117108900769577833L;
 
 	public static enum Direction {
-		LEFT, RIGHT, UP, DOWN
+		LEFT, RIGHT, UP, DOWN;
+
+		public static String toString(Direction d) {
+			switch (d) {
+			default:
+			case LEFT:
+				return "LEFT";
+			case RIGHT:
+				return "RIGHT";
+			case UP:
+				return "UP";
+			case DOWN:
+				return "DOWN";
+			}
+		}
 	}
 
 	public double x, y;

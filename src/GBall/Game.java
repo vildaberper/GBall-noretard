@@ -1,6 +1,7 @@
 package GBall;
 
 import java.awt.Color;
+import java.awt.Font;
 
 import GBall.engine.Ball;
 import GBall.engine.Const;
@@ -18,15 +19,14 @@ import GBall.engine.World.WorldListener;
 import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
 import GBall.engine.event.GoalEvent;
-
-import static GBall.engine.Util.*;
-
+import GBall.engine.event.NothingEvent;
 
 public class Game implements WorldListener, GameWindowListener, StateListener {
-	
-	public interface GameListener{
+
+	public interface GameListener {
 		void onGoal(boolean red);
 	}
+
 	private final World world;
 	private final StateManager stateManager;
 
@@ -34,13 +34,15 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	private Ball b;
 
 	private long frame = 0;
-	
+
 	private int scoreRed = 0, scoreGreen = 0;
 	private final GameListener listener;
+
 	public Game(GameListener listener) {
+		this.listener = listener;
+
 		world = new World(this);
 		stateManager = new StateManager(this);
-		this.listener = listener;
 
 		b = new Ball(0L);
 		s1 = new Ship(1L, Color.RED);
@@ -56,22 +58,26 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	}
 
 	public void setState(GameState state) {
-		world.setState(state.worldState);
+		world.setState(state.worldState.clone());
 		scoreRed = state.scoreRed;
 		scoreGreen = state.scoreGreen;
 		frame = state.frame;
-		
+
 		b = (Ball) world.getEntity(0L);
-		
-		s1 = (getShip(1L) != null) ? getShip(1L) : new Ship(1L, Color.RED);
-		s2 = (getShip(2L) != null) ? getShip(2L) : new Ship(2L, Color.RED);
-		s3 = (getShip(3L) != null) ? getShip(3L) : new Ship(3L, Color.GREEN);
-		s4 = (getShip(4L) != null) ? getShip(4L) : new Ship(4L, Color.GREEN);
-		
+
+		Ship tmp;
+		s1 = (tmp = getShip(1L)) == null ? new Ship(1L, Color.RED) : tmp;
+		s2 = (tmp = getShip(2L)) == null ? new Ship(2L, Color.RED) : tmp;
+		s3 = (tmp = getShip(3L)) == null ? new Ship(3L, Color.GREEN) : tmp;
+		s4 = (tmp = getShip(4L)) == null ? new Ship(4L, Color.GREEN) : tmp;
 	}
 
 	public long getFrame() {
 		return frame;
+	}
+
+	public void saveState() {
+		stateManager.add(new NothingEvent(getFrame()), getState());
 	}
 
 	public long addShip() {
@@ -137,7 +143,7 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	}
 
 	public void pushEvent(Event event) {
-		stateManager.add(event, getState());
+		stateManager.add(event, null);
 	}
 
 	@Override
@@ -146,11 +152,17 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 		switch (d) {
 		case LEFT: {
-			e.position.x += e.radius() - dist;
+			if (e instanceof Ball)
+				listener.onGoal(false);
+			else
+				e.position.x += e.radius() - dist;
 			break;
 		}
 		case RIGHT: {
-			e.position.x -= e.radius() - dist;
+			if (e instanceof Ball)
+				listener.onGoal(true);
+			else
+				e.position.x -= e.radius() - dist;
 			break;
 		}
 		case UP: {
@@ -161,14 +173,6 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 			e.position.y -= e.radius() - dist;
 			break;
 		}
-		}
-
-		if (e instanceof Ball) {
-			if (d.equals(Direction.LEFT)) {
-				listener.onGoal(false);
-			} else if (d.equals(Direction.RIGHT)) {
-				listener.onGoal(true);
-			}
 		}
 	}
 
@@ -202,16 +206,29 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 			// gw.drawString(Integer.toString((int) world.fps()),
 			// Const.FPS_TEXT_POSITION);
 		}
+		gw.setColor(Color.WHITE);
+		gw.setFont_(new Font("Arial", Font.BOLD, 12));
+		String[] ss = stateManager.toString().split("\n");
+		Vector2 p = new Vector2(10, 50);
+
+		for (String s : ss) {
+			gw.drawString(s, p);
+			p.y += 13;
+		}
+
+		gw.drawString(Long.toString(getFrame()), new Vector2(500, 50));
+
 	}
 
 	@Override
 	public void onTimewarp(Snapshot snapshot) {
 		long currentFrame = snapshot.event.framestamp;
 
-		System.out.println("timewarp " + (frame - currentFrame));
+		System.out.println("timewarp to frame " + currentFrame + " from " + frame);
+		System.out.println("  " + snapshot.event.toString());
 
 		setState(snapshot.state);
-		while (currentFrame < frame) {
+		while (currentFrame <= frame) {
 			stateManager.step(currentFrame);
 			world.update(currentFrame);
 			++currentFrame;
@@ -221,33 +238,29 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	@Override
 	public void onEvent(Snapshot snapshot) {
 		snapshot.state = getState();
-		
+
+		System.out.println("  event(" + getFrame() + "):" + snapshot.event.toString());
+
 		if (snapshot.event instanceof ControllerEvent) {
 			ControllerEvent ce = (ControllerEvent) snapshot.event;
 
 			if (ce.entityId != -1) {
-				if (ce.press) {
-					System.out.println("press");
+				if (ce.press)
 					getShip(ce.entityId).onPress(ce.direction);
-				} else {
-					System.out.println("release");
+				else
 					getShip(ce.entityId).onRelease(ce.direction);
-				}
 			}
-		}
-		
-		else if(snapshot.event instanceof GoalEvent){
+		} else if (snapshot.event instanceof GoalEvent) {
 			GoalEvent ge = (GoalEvent) snapshot.event;
-			if(ge.red)
+
+			if (ge.red)
 				++scoreRed;
 			else
 				++scoreGreen;
-			
+
 			reset();
 			System.out.println("Reset, GOAL");
 		}
-
-		
 	}
 
 }

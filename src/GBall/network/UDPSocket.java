@@ -5,22 +5,16 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 
-public class Socket {
-
-	public interface SocketListener {
-
-		public void onReceive(Location source, Packet packet);
-
-	}
+public class UDPSocket {
 
 	private final DatagramSocket socket;
 	private Thread receiveThread;
 
-	public Socket() throws SocketException {
+	public UDPSocket() throws SocketException {
 		socket = new DatagramSocket();
 	}
 
-	public Socket(int port) throws SocketException {
+	public UDPSocket(int port) throws SocketException {
 		socket = new DatagramSocket(port);
 	}
 

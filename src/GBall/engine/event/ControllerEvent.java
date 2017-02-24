@@ -18,4 +18,9 @@ public class ControllerEvent extends Event {
 		this.press = press;
 	}
 
+	@Override
+	public String toString() {
+		return "ControllerEvent - " + framestamp + " " + entityId + " " + Direction.toString(direction) + " " + press;
+	}
+
 }

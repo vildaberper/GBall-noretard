@@ -14,8 +14,8 @@ import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
 import GBall.network.Location;
 import GBall.network.Packet;
-import GBall.network.Socket;
-import GBall.network.Socket.SocketListener;
+import GBall.network.SocketListener;
+import GBall.network.TCPSocket;
 
 import static GBall.engine.Util.*;
 
@@ -26,10 +26,10 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 		c.run();
 	}
 
-	private final Socket socket;
+	private final TCPSocket socket;
 
 	private final Location server = new Location("vildaberper.no-ip.org", 25565);
-	//private final Location server = new Location("localhost", 25565);
+	// private final Location server = new Location("localhost", 25565);
 
 	private long id = -1;
 
@@ -39,19 +39,17 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 	private final GameWindow gw;
 
 	public Client() throws UnknownHostException, IOException {
-		socket = new Socket();
+		socket = new TCPSocket(server);
 		game = new Game(this);
 		gw = new GameWindow(game);
 	}
 
 	public void run() {
-		socket.open(this);
-
 		Controller c = new Controller(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN, this);
-		gw.addKeyListener(c);
 
 		game.reset();
-
+		socket.open(this);
+		gw.addKeyListener(c);
 		while (true) {
 			if (startTime == -1) {
 				gw.repaint();
@@ -59,13 +57,16 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 				continue;
 			}
 
-			game.tick();
+			synchronized (game) {
+				game.tick();
+			}
 			gw.repaint();
 
-			long timeToSleep = (startTime + game.getFrame() * Const.FRAME_INCREMENT) - Time.getTime();
+			long timeToSleep = startTime + game.getFrame() * Const.FRAME_INCREMENT - Time.getTime();
 
 			if (timeToSleep > 0)
 				sleep(timeToSleep);
+
 		}
 	}
 
@@ -74,23 +75,37 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 		Object obj = packet.getObject();
 
 		if (obj instanceof Long) {
-			System.out.println("got id");
-			id = (Long) obj;
+			if (startTime == -1) {
+				startTime = (Long) obj;
+				System.out.println("startTime=" + startTime);
+			} else {
+				id = (Long) obj;
+				System.out.println("id=" + id);
+			}
 		} else if (obj instanceof Event) {
-			System.out.println("got event");
-			game.pushEvent((Event) obj);
+			// System.out.println("got event");
+			synchronized (game) {
+				game.pushEvent((Event) obj);
+			}
 		} else if (obj instanceof GameState) {
 			System.out.println("got state");
-			game.setState((GameState) obj);
-			startTime = Time.getTime() - game.getFrame() * Const.FRAME_INCREMENT;
+			synchronized (game) {
+				game.setState((GameState) obj);
+				game.saveState();
+			}
+			// Time.setOffset(startTime + game.getFrame() *Const.FRAME_INCREMENT
+			// - Time.getTime());
+			System.out.println("offset=" + Time.getOffset());
 		}
 	}
 
 	private void localEvent(Direction d, boolean press) {
-		ControllerEvent event = new ControllerEvent(game.getFrame() + Const.LOCAL_DELAY, id, d, press);
+		synchronized (game) {
+			ControllerEvent event = new ControllerEvent(game.getFrame() + Const.LOCAL_DELAY, id, d, press);
 
-		game.pushEvent(event);
-		socket.send(server, new Packet(event));
+			socket.send(new Packet(event));
+			game.pushEvent(event);
+		}
 	}
 
 	@Override
@@ -105,8 +120,7 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 
 	@Override
 	public void onGoal(boolean red) {
-		//DO NOTHING GOALS ARE HANDLED BY SERVER
-		
+		// DO NOTHING GOALS ARE HANDLED BY SERVER
 	}
 
 }
