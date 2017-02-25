@@ -101,7 +101,7 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 
 	private void localEvent(Direction d, boolean press) {
 		synchronized (game) {
-			ControllerEvent event = new ControllerEvent(game.getFrame() + Const.LOCAL_DELAY, id, d, press);
+			ControllerEvent event = new ControllerEvent(game.getFrame() + Const.LOCAL_DELAY * 0, id, d, press);
 
 			socket.send(new Packet(event));
 			game.pushEvent(event);

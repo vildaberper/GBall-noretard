@@ -2,6 +2,7 @@ package GBall;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.util.HashSet;
 
 import GBall.engine.Ball;
 import GBall.engine.Const;
@@ -37,6 +38,8 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 	private int scoreRed = 0, scoreGreen = 0;
 	private final GameListener listener;
+
+	private HashSet<Event> queuedEvents = new HashSet<Event>();
 
 	public Game(GameListener listener) {
 		this.listener = listener;
@@ -77,7 +80,7 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	}
 
 	public void saveState() {
-		stateManager.add(new NothingEvent(getFrame()), getState());
+		stateManager.add(new NothingEvent(getFrame() + 1), getState());
 	}
 
 	public long addShip() {
@@ -107,11 +110,30 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 		return null;
 	}
 
-	public void tick() {
+	private void update() {
 		++frame;
 		stateManager.step(frame);
-		stateManager.clean();
+
+		int queuedSize;
+		while ((queuedSize = queuedEvents.size()) > 0) {
+			HashSet<Event> tmp = queuedEvents;
+			queuedEvents = new HashSet<Event>();
+
+			for (Event event : tmp)
+				event(event);
+
+			if (queuedSize <= queuedEvents.size()) {
+				System.out.println("!!! invalid inputs !!!");
+				break;
+			}
+		}
+
 		world.update(frame);
+	}
+
+	public void tick() {
+		update();
+		stateManager.clean();
 	}
 
 	public void reset() {
@@ -222,36 +244,38 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 	@Override
 	public void onTimewarp(Snapshot snapshot) {
-		long currentFrame = snapshot.event.framestamp;
+		long currentFrame = frame;
 
-		System.out.println("timewarp to frame " + currentFrame + " from " + frame);
-		System.out.println("  " + snapshot.event.toString());
+		System.out.println("timewarp to frame " + snapshot.state.frame + " from " + frame);
+		System.out.println("  ->" + snapshot.event.toString());
 
 		setState(snapshot.state);
-		while (currentFrame <= frame) {
-			stateManager.step(currentFrame);
-			world.update(currentFrame);
-			++currentFrame;
-		}
+		while (frame <= currentFrame)
+			update();
 	}
 
-	@Override
-	public void onEvent(Snapshot snapshot) {
-		snapshot.state = getState();
+	private void event(Event event) {
+		System.out.println("  event(" + getFrame() + "):" + event.toString());
 
-		System.out.println("  event(" + getFrame() + "):" + snapshot.event.toString());
+		if (event instanceof ControllerEvent) {
+			ControllerEvent ce = (ControllerEvent) event;
+			Ship s = getShip(ce.entityId);
 
-		if (snapshot.event instanceof ControllerEvent) {
-			ControllerEvent ce = (ControllerEvent) snapshot.event;
+			if (s == null) {
+				System.out.println("!!! ship fucked up !!!");
+				return;
+			}
 
-			if (ce.entityId != -1) {
+			if (!(ce.press ^ s.isPressed(ce.direction)))
+				queuedEvents.add(event);
+			else {
 				if (ce.press)
 					getShip(ce.entityId).onPress(ce.direction);
 				else
 					getShip(ce.entityId).onRelease(ce.direction);
 			}
-		} else if (snapshot.event instanceof GoalEvent) {
-			GoalEvent ge = (GoalEvent) snapshot.event;
+		} else if (event instanceof GoalEvent) {
+			GoalEvent ge = (GoalEvent) event;
 
 			if (ge.red)
 				++scoreRed;
@@ -261,6 +285,12 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 			reset();
 			System.out.println("Reset, GOAL");
 		}
+	}
+
+	@Override
+	public void onEvent(Snapshot snapshot) {
+		snapshot.state = getState();
+		event(snapshot.event);
 	}
 
 }

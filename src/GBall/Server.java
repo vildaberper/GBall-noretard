@@ -95,12 +95,14 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 
 		Event event = (Event) packet.getObject();
 
+		/*
+		 * TODO validate ControllerEvent and entity id.
+		 */
+
 		broadcast(event, client);
 		synchronized (game) {
 			game.pushEvent(event);
 		}
-
-		// System.out.println("got event");
 	}
 
 	@Override

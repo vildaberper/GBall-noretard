@@ -70,6 +70,31 @@ public class StateManager {
 		couple(s2, s3);
 	}
 
+	private Snapshot back(Snapshot s) {
+		long frame = s.event.framestamp;
+
+		while (s.previous != null && s.previous.event.framestamp >= frame)
+			s = s.previous;
+		return s;
+	}
+
+	private Snapshot forward(Snapshot s) {
+		long frame = s.event.framestamp;
+
+		while (s.next != null && s.next.event.framestamp <= frame)
+			s = s.next;
+		return s;
+	}
+
+	// rightmost snapshot with a smaller or equal previous framestamp
+	private Snapshot find(long frame) {
+		Snapshot s = last;
+
+		while (s.previous != null && s.previous.event.framestamp > frame)
+			s = s.previous;
+		return s;
+	}
+
 	public void clean() {
 		while (first != null && first != last && (frame - first.event.framestamp) > Const.OUTDATED_THRESHOLD) {
 			Snapshot temp = first.next;
@@ -79,41 +104,26 @@ public class StateManager {
 	}
 
 	public void add(Event event, GameState state) {
-		if (event.framestamp <= frame) {
-			System.out.println("i should timewarp");
-		}
-
-		Snapshot snapshot = new Snapshot(state, event);
+		Snapshot s = new Snapshot(state, event);
 
 		if (first == null) {
-			first = last = current = snapshot;
+			first = last = current = s;
 			return;
 		}
 
-		if (last.event.framestamp < event.framestamp) {
-			couple(last, snapshot);
-			last = snapshot;
-			if (event.framestamp <= frame)
-				listener.onTimewarp(current = last.previous);
-			else if (current == null)
-				current = last;
-			return;
-		}
+		Snapshot fs = find(event.framestamp);
 
-		Snapshot tmp = last;
-		while (tmp.event.framestamp > snapshot.event.framestamp)
-			if ((tmp = tmp.previous) == null) {
-				System.out.println("shit fucked up");
-				return;
-			}
+		if (fs == last) {
+			couple(fs, last = s);
+			if (current == null)
+				current = s;
+		} else if (fs == null)
+			System.out.println("shit fucked up");
+		else
+			couple(fs, s, fs.next);
 
-		couple(tmp, snapshot, tmp.next);
-
-		if (snapshot.event.framestamp <= frame) {
-			System.out.println("snapshot:" + snapshot.event.toString());
-			System.out.println("tmp:" + tmp.event.toString());
-			listener.onTimewarp(current = tmp);
-		}
+		if (s.event.framestamp <= frame)
+			listener.onTimewarp(current = back(s.previous));
 	}
 
 	@Override

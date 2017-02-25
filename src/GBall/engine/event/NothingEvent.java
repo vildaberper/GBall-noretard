@@ -9,7 +9,7 @@ public class NothingEvent extends Event {
 
 	@Override
 	public String toString() {
-		return "NothingEvent";
+		return "NothingEvent - " + framestamp;
 	}
 
 }

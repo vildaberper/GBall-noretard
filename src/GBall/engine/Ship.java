@@ -76,6 +76,24 @@ public class Ship extends Entity implements ControllerListener {
 		return Const.BALL_MAX_SPEED;
 	}
 
+	public boolean isPressed(Direction d) {
+		switch (d) {
+		default:
+		case UP: {
+			return up;
+		}
+		case DOWN: {
+			return down;
+		}
+		case LEFT: {
+			return left;
+		}
+		case RIGHT: {
+			return right;
+		}
+		}
+	}
+
 	private void control(Direction d, boolean press) {
 		switch (d) {
 		case UP: {
