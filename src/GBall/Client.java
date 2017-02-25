@@ -64,11 +64,8 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 
 			long timeToSleep = startTime + game.getFrame() * Const.FRAME_INCREMENT - Time.getTime();
 
-			if (timeToSleep > 0) {
-				System.out.println("timeToSleep=" + timeToSleep);
+			if (timeToSleep > 0)
 				sleep(timeToSleep);
-			}
-
 		}
 	}
 
@@ -94,8 +91,7 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 				game.setState((GameState) obj);
 				game.saveState();
 			}
-			// Time.setOffset(startTime + game.getFrame() *Const.FRAME_INCREMENT
-			// - Time.getTime());
+			Time.setOffset(startTime + game.getFrame() * Const.FRAME_INCREMENT - Time.getTime());
 			System.out.println("offset=" + Time.getOffset());
 		}
 	}
