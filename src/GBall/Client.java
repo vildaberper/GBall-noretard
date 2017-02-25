@@ -91,14 +91,14 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 				game.setState((GameState) obj);
 				game.saveState();
 			}
-			Time.setOffset(startTime + game.getFrame() * Const.FRAME_INCREMENT - Time.getTime() + 600);
+			Time.setOffset(startTime + game.getFrame() * Const.FRAME_INCREMENT - Time.getTime());
 			System.out.println("offset=" + Time.getOffset());
 		}
 	}
 
 	private void localEvent(Direction d, boolean press) {
 		synchronized (game) {
-			ControllerEvent event = new ControllerEvent(game.getFrame() + 1/*Const.LOCAL_DELAY * 0*/, id, d, press);
+			ControllerEvent event = new ControllerEvent(game.getFrame() + Const.LOCAL_DELAY, id, d, press);
 
 			socket.send(new Packet(event));
 			game.pushEvent(event);
