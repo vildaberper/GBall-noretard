@@ -64,8 +64,10 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 
 			long timeToSleep = startTime + game.getFrame() * Const.FRAME_INCREMENT - Time.getTime();
 
-			if (timeToSleep > 0)
+			if (timeToSleep > 0) {
+				System.out.println("timeToSleep=" + timeToSleep);
 				sleep(timeToSleep);
+			}
 
 		}
 	}
