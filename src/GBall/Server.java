@@ -71,8 +71,8 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 			 */
 			synchronized (game) {
 				game.tick();
+				gw.repaint();
 			}
-			gw.repaint();
 
 			long timeToSleep = startTime + game.getFrame() * Const.FRAME_INCREMENT - Time.getTime();
 
