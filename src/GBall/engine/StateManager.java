@@ -123,7 +123,7 @@ public class StateManager {
 			couple(fs, s, fs.next);
 
 		if (s.event.framestamp <= frame)
-			listener.onTimewarp(current = back(s.previous));
+			listener.onTimewarp(current = back(s.previous == null ? s : s.previous));
 	}
 
 	@Override
