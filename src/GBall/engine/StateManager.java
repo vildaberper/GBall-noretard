@@ -112,14 +112,13 @@ public class StateManager {
 		}
 
 		Snapshot fs = find(event.framestamp);
-
-		if (fs == last) {
+		if (fs == null)
+			System.out.println("shit fucked up");
+		else if (fs.equals(last)) {
 			couple(fs, last = s);
 			if (current == null)
 				current = s;
-		} else if (fs == null)
-			System.out.println("shit fucked up");
-		else
+		} else
 			couple(fs, s, fs.next);
 
 		if (s.event.framestamp <= frame)
