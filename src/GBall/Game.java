@@ -27,6 +27,8 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 	public interface GameListener {
 		void onGoal(boolean red);
+
+		void onTimewarp(long offset, long entityId);
 	}
 
 	private final World world;
@@ -246,6 +248,8 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	@Override
 	public void onTimewarp(Snapshot snapshot) {
 		long currentFrame = frame;
+
+		listener.onTimewarp((frame - snapshot.state.frame) * Const.FRAME_INCREMENT, snapshot.event.getEntityId());
 
 		System.out.println("timewarp to frame " + snapshot.state.frame + " from " + frame);
 		System.out.println("  ->" + snapshot.event.toString());

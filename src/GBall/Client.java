@@ -12,6 +12,7 @@ import GBall.engine.Time;
 import GBall.engine.Vector2.Direction;
 import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
+import GBall.engine.event.OffsetEvent;
 import GBall.network.Location;
 import GBall.network.Packet;
 import GBall.network.SocketListener;
@@ -82,9 +83,13 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 				System.out.println("id=" + id);
 			}
 		} else if (obj instanceof Event) {
-			synchronized (game) {
-				game.pushEvent((Event) obj);
-			}
+			if (obj instanceof OffsetEvent) {
+				Time.setOffset(Time.getOffset() + ((OffsetEvent) obj).offset);
+				System.out.println("offset=" + Time.getOffset());
+			} else
+				synchronized (game) {
+					game.pushEvent((Event) obj);
+				}
 		} else if (obj instanceof GameState) {
 			System.out.println("got state");
 			synchronized (game) {
@@ -118,6 +123,11 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 	@Override
 	public void onGoal(boolean red) {
 		// DO NOTHING GOALS ARE HANDLED BY SERVER
+	}
+
+	@Override
+	public void onTimewarp(long offset, long entityId) {
+
 	}
 
 }

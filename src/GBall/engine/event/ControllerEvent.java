@@ -22,5 +22,10 @@ public class ControllerEvent extends Event {
 	public String toString() {
 		return "ControllerEvent - " + framestamp + " " + entityId + " " + Direction.toString(direction) + " " + press;
 	}
+	
+	@Override
+	public long getEntityId() {
+		return entityId;
+	}
 
 }

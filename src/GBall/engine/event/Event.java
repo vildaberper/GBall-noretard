@@ -11,6 +11,10 @@ public abstract class Event implements Serializable {
 		this.framestamp = framestamp;
 	}
 
+	public long getEntityId() {
+		return -1;
+	}
+
 	@Override
 	public abstract String toString();
 

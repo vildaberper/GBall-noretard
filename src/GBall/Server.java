@@ -13,6 +13,7 @@ import GBall.engine.Time;
 import GBall.engine.event.AddEntityEvent;
 import GBall.engine.event.Event;
 import GBall.engine.event.GoalEvent;
+import GBall.engine.event.OffsetEvent;
 import GBall.network.Location;
 import GBall.network.Packet;
 import GBall.network.SocketListener;
@@ -54,6 +55,13 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 		socket = new TCPServerSocket(25565);
 		game = new Game(this);
 		gw = new GameWindow(game);
+	}
+
+	private Client getClient(long id) {
+		for (Client c : clients.values())
+			if (c.id == id)
+				return c;
+		return null;
 	}
 
 	public void run() {
@@ -139,6 +147,14 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 
 		} else
 			socket.close();
+	}
+
+	@Override
+	public void onTimewarp(long offset, long entityId) {
+		Client c = getClient(entityId);
+
+		if (c != null)
+			c.socket.send(new Packet(new OffsetEvent(0, offset)));
 	}
 
 }
