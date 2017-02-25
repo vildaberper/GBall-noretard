@@ -17,6 +17,7 @@ import GBall.engine.Vector2.Direction;
 import GBall.engine.World;
 import GBall.engine.GameWindow.GameWindowListener;
 import GBall.engine.World.WorldListener;
+import GBall.engine.event.AddEntityEvent;
 import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
 import GBall.engine.event.GoalEvent;
@@ -283,7 +284,10 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 				++scoreGreen;
 
 			reset();
-			System.out.println("Reset, GOAL");
+		} else if (event instanceof AddEntityEvent) {
+			AddEntityEvent aee = (AddEntityEvent) event;
+
+			world.addEntity(aee.entity);
 		}
 	}
 

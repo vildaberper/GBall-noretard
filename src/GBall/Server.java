@@ -9,6 +9,7 @@ import GBall.Game.GameListener;
 import GBall.engine.Const;
 import GBall.engine.GameWindow;
 import GBall.engine.Time;
+import GBall.engine.event.AddEntityEvent;
 import GBall.engine.event.Event;
 import GBall.engine.event.GoalEvent;
 import GBall.network.Location;
@@ -123,12 +124,16 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 			socket.open(this);
 			socket.send(new Packet(startTime));
 			socket.send(new Packet(client.id));
-			GameState ga;
+
+			AddEntityEvent event = new AddEntityEvent(game.getFrame() + 1, game.getShip(client.id).clone());
+
+			broadcast(event);
 			synchronized (game) {
-				ga = game.getState().clone();
 				game.saveState();
+				socket.send(new Packet(game.getState()));
+				game.pushEvent(event);
 			}
-			broadcast(ga);
+
 		} else
 			socket.close();
 	}
