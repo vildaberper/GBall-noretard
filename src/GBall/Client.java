@@ -83,7 +83,6 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 				System.out.println("id=" + id);
 			}
 		} else if (obj instanceof Event) {
-			// System.out.println("got event");
 			synchronized (game) {
 				game.pushEvent((Event) obj);
 			}

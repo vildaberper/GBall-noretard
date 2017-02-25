@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import GBall.Game.GameListener;
 import GBall.engine.Const;
 import GBall.engine.GameWindow;
+import GBall.engine.Ship;
 import GBall.engine.Time;
 import GBall.engine.event.AddEntityEvent;
 import GBall.engine.event.Event;
@@ -119,18 +120,20 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 	@Override
 	public void onConnect(TCPSocket socket) {
 		Client client = new Client(socket);
-		if ((client.id = game.addShip()) != -1) {
+		Ship ship = game.nextShip();
+
+		if (ship != null) {
+			client.id = ship.id;
 			clients.put(socket.location, client);
 			socket.open(this);
 			socket.send(new Packet(startTime));
 			socket.send(new Packet(client.id));
 
-			AddEntityEvent event = new AddEntityEvent(game.getFrame() + 1, game.getShip(client.id).clone());
-
-			broadcast(event);
 			synchronized (game) {
-				game.saveState();
+				AddEntityEvent event = new AddEntityEvent(game.getFrame() + 1, ship.clone());
+
 				socket.send(new Packet(game.getState()));
+				broadcast(event);
 				game.pushEvent(event);
 			}
 

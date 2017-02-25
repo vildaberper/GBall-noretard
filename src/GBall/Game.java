@@ -40,7 +40,7 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	private int scoreRed = 0, scoreGreen = 0;
 	private final GameListener listener;
 
-	private HashSet<Event> queuedEvents = new HashSet<Event>();
+	private HashSet<Snapshot> queuedEvents = new HashSet<Snapshot>();
 
 	public Game(GameListener listener) {
 		this.listener = listener;
@@ -81,25 +81,25 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	}
 
 	public void saveState() {
-		stateManager.add(new NothingEvent(getFrame() + 1), getState());
+		stateManager.add(new NothingEvent(frame), getState());
 	}
 
-	public long addShip() {
+	public Ship nextShip() {
 		switch (world.size()) {
 		case 1:
-			world.addEntity(s1);
-			return s1.id;
+			return s1;
 		case 2:
-			world.addEntity(s2);
-			return s2.id;
+			return s2;
 		case 3:
-			world.addEntity(s3);
-			return s3.id;
+			return s3;
 		case 4:
-			world.addEntity(s4);
-			return s4.id;
+			return s4;
 		}
-		return -1;
+		return null;
+	}
+
+	public void addEntity(Entity... e) {
+		world.addEntity(e);
 	}
 
 	public Ship getShip(long id) {
@@ -117,11 +117,11 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 		int queuedSize;
 		while ((queuedSize = queuedEvents.size()) > 0) {
-			HashSet<Event> tmp = queuedEvents;
-			queuedEvents = new HashSet<Event>();
+			HashSet<Snapshot> tmp = queuedEvents;
+			queuedEvents = new HashSet<Snapshot>();
 
-			for (Event event : tmp)
-				event(event);
+			for (Snapshot s : tmp)
+				onEvent(s);
 
 			if (queuedSize <= queuedEvents.size()) {
 				System.out.println("!!! invalid inputs !!!");
@@ -251,15 +251,19 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 		System.out.println("  ->" + snapshot.event.toString());
 
 		setState(snapshot.state);
+		--frame;
 		while (frame <= currentFrame)
 			update();
 	}
 
-	private void event(Event event) {
-		System.out.println("  event(" + getFrame() + "):" + event.toString());
+	@Override
+	public void onEvent(Snapshot snapshot) {
+		snapshot.state = getState();
 
-		if (event instanceof ControllerEvent) {
-			ControllerEvent ce = (ControllerEvent) event;
+		System.out.println("  event(" + getFrame() + "):" + snapshot.event.toString());
+
+		if (snapshot.event instanceof ControllerEvent) {
+			ControllerEvent ce = (ControllerEvent) snapshot.event;
 			Ship s = getShip(ce.entityId);
 
 			if (s == null) {
@@ -268,15 +272,15 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 			}
 
 			if (!(ce.press ^ s.isPressed(ce.direction)))
-				queuedEvents.add(event);
+				queuedEvents.add(snapshot);
 			else {
 				if (ce.press)
 					getShip(ce.entityId).onPress(ce.direction);
 				else
 					getShip(ce.entityId).onRelease(ce.direction);
 			}
-		} else if (event instanceof GoalEvent) {
-			GoalEvent ge = (GoalEvent) event;
+		} else if (snapshot.event instanceof GoalEvent) {
+			GoalEvent ge = (GoalEvent) snapshot.event;
 
 			if (ge.red)
 				++scoreRed;
@@ -284,17 +288,11 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 				++scoreGreen;
 
 			reset();
-		} else if (event instanceof AddEntityEvent) {
-			AddEntityEvent aee = (AddEntityEvent) event;
+		} else if (snapshot.event instanceof AddEntityEvent) {
+			AddEntityEvent aee = (AddEntityEvent) snapshot.event;
 
-			world.addEntity(aee.entity);
+			world.addEntity(aee.entity.clone());
 		}
-	}
-
-	@Override
-	public void onEvent(Snapshot snapshot) {
-		snapshot.state = getState();
-		event(snapshot.event);
 	}
 
 }
