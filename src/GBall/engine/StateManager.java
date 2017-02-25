@@ -51,9 +51,9 @@ public class StateManager {
 	private void decouple(Snapshot s) {
 		if (s != null) {
 			if (s.previous != null)
-				s.previous.next = s.next != null ? s.next : null;
+				s.previous.next = (s.next != null ? s.next : null);
 			if (s.next != null)
-				s.next.previous = s.previous != null ? s.previous : null;
+				s.next.previous = (s.previous != null ? s.previous : null);
 			s.previous = s.next = null;
 		}
 	}
@@ -95,7 +95,7 @@ public class StateManager {
 			last = snapshot;
 			if (event.framestamp <= frame)
 				listener.onTimewarp(current = last.previous);
-			else if(current == null)
+			else if (current == null)
 				current = last;
 			return;
 		}

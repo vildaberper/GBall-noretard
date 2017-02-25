@@ -108,10 +108,10 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	}
 
 	public void tick() {
+		++frame;
 		stateManager.step(frame);
 		stateManager.clean();
 		world.update(frame);
-		++frame;
 	}
 
 	public void reset() {
