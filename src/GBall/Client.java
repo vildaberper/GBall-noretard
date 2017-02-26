@@ -87,37 +87,22 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 				Time.setOffset(Time.getOffset() + ((OffsetEvent) obj).offset);
 				System.out.println("offset=" + Time.getOffset());
 			} else
-				synchronized (game) {
-					game.pushEvent((Event) obj);
-				}
-		} else if (obj instanceof GameState) {
-			System.out.println("got state");
-			synchronized (game) {
-				game.setState((GameState) obj);
-				game.saveState();
-			}
-			Time.setOffset(startTime + game.getFrame() * Const.FRAME_INCREMENT - Time.getTime());
-			System.out.println("offset=" + Time.getOffset());
+				game.pushEvent((Event) obj);
 		}
 	}
 
 	private void localEvent(Direction d, boolean press) {
+		ControllerEvent event;
 		synchronized (game) {
-			ControllerEvent event = new ControllerEvent(game.getFrame() + Const.LOCAL_DELAY, id, d, press);
-
-			socket.send(new Packet(event));
-			game.pushEvent(event);
+			event = new ControllerEvent(game.getFrame() + Const.LOCAL_DELAY, id, d, press);
 		}
+		socket.send(new Packet(event));
+		game.pushEvent(event);
 	}
 
 	@Override
-	public void onPress(Direction d) {
-		localEvent(d, true);
-	}
-
-	@Override
-	public void onRelease(Direction d) {
-		localEvent(d, false);
+	public void onDirection(Direction d, boolean press) {
+		localEvent(d, press);
 	}
 
 	@Override

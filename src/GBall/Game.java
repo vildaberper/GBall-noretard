@@ -3,6 +3,8 @@ package GBall;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.HashSet;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import GBall.engine.Ball;
 import GBall.engine.Const;
@@ -22,6 +24,7 @@ import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
 import GBall.engine.event.GoalEvent;
 import GBall.engine.event.NothingEvent;
+import GBall.engine.event.StateEvent;
 
 public class Game implements WorldListener, GameWindowListener, StateListener {
 
@@ -42,7 +45,9 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	private int scoreRed = 0, scoreGreen = 0;
 	private final GameListener listener;
 
-	private HashSet<Snapshot> queuedEvents = new HashSet<Snapshot>();
+	private HashSet<Snapshot> eventQueueFrame = new HashSet<Snapshot>();
+
+	private Queue<Event> eventQueue = new ConcurrentLinkedQueue<Event>();
 
 	public Game(GameListener listener) {
 		this.listener = listener;
@@ -114,18 +119,24 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	}
 
 	private void update() {
+		{
+			Event event = null;
+			while ((event = eventQueue.poll()) != null)
+				stateManager.add(event, null);
+		}
+
 		++frame;
 		stateManager.step(frame);
 
 		int queuedSize;
-		while ((queuedSize = queuedEvents.size()) > 0) {
-			HashSet<Snapshot> tmp = queuedEvents;
-			queuedEvents = new HashSet<Snapshot>();
+		while ((queuedSize = eventQueueFrame.size()) > 0) {
+			HashSet<Snapshot> tmp = eventQueueFrame;
+			eventQueueFrame = new HashSet<Snapshot>();
 
 			for (Snapshot s : tmp)
 				onEvent(s);
 
-			if (queuedSize <= queuedEvents.size()) {
+			if (queuedSize <= eventQueueFrame.size()) {
 				System.out.println("!!! invalid inputs !!!");
 				break;
 			}
@@ -168,7 +179,7 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	}
 
 	public void pushEvent(Event event) {
-		stateManager.add(event, null);
+		eventQueue.add(event);
 	}
 
 	@Override
@@ -276,13 +287,9 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 			}
 
 			if (!(ce.press ^ s.isPressed(ce.direction)))
-				queuedEvents.add(snapshot);
-			else {
-				if (ce.press)
-					getShip(ce.entityId).onPress(ce.direction);
-				else
-					getShip(ce.entityId).onRelease(ce.direction);
-			}
+				eventQueueFrame.add(snapshot);
+			else
+				s.onDirection(ce.direction, ce.press);
 		} else if (snapshot.event instanceof GoalEvent) {
 			GoalEvent ge = (GoalEvent) snapshot.event;
 
@@ -296,6 +303,10 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 			AddEntityEvent aee = (AddEntityEvent) snapshot.event;
 
 			world.addEntity(aee.entity.clone());
+		} else if (snapshot.event instanceof StateEvent) {
+			StateEvent se = (StateEvent) snapshot.event;
+
+			setState(se.state);
 		}
 	}
 

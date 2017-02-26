@@ -72,5 +72,5 @@ public final class Const {
 	public final static Color BALL_COLOR = Color.WHITE;
 
 	// Events and states
-	public final static long OUTDATED_THRESHOLD = 20000L / FRAME_INCREMENT;
+	public final static long OUTDATED_THRESHOLD = 10000L / FRAME_INCREMENT;
 }

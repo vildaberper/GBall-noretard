@@ -116,13 +116,8 @@ public class Ship extends Entity implements ControllerListener {
 	}
 
 	@Override
-	public void onPress(Direction d) {
-		control(d, true);
-	}
-
-	@Override
-	public void onRelease(Direction d) {
-		control(d, false);
+	public void onDirection(Direction d, boolean press) {
+		control(d, press);
 	}
 
 	@Override

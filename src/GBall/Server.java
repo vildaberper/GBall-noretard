@@ -14,6 +14,7 @@ import GBall.engine.event.AddEntityEvent;
 import GBall.engine.event.Event;
 import GBall.engine.event.GoalEvent;
 import GBall.engine.event.OffsetEvent;
+import GBall.engine.event.StateEvent;
 import GBall.network.Location;
 import GBall.network.Packet;
 import GBall.network.SocketListener;
@@ -110,9 +111,7 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 		 */
 
 		broadcast(event, client);
-		synchronized (game) {
-			game.pushEvent(event);
-		}
+		game.pushEvent(event);
 	}
 
 	@Override
@@ -120,9 +119,7 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 		GoalEvent event = new GoalEvent(game.getFrame(), red);
 
 		broadcast(event);
-		synchronized (game) {
-			game.pushEvent(event);
-		}
+		game.pushEvent(event);
 	}
 
 	@Override
@@ -137,16 +134,18 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 			socket.send(new Packet(startTime));
 			socket.send(new Packet(client.id));
 
+			AddEntityEvent aee;
+			StateEvent gse;
 			synchronized (game) {
-				AddEntityEvent event = new AddEntityEvent(game.getFrame() + 1, ship.clone());
-
-				socket.send(new Packet(game.getState()));
-				broadcast(event);
-				game.pushEvent(event);
+				gse = new StateEvent(game.getState());
+				aee = new AddEntityEvent(game.getFrame() + 1, ship.clone());
 			}
-
+			socket.send(new Packet(gse));
+			broadcast(aee);
+			game.pushEvent(aee);
 		} else
 			socket.close();
+
 	}
 
 	@Override
@@ -154,7 +153,7 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 		Client c = getClient(entityId);
 
 		if (c != null)
-			c.socket.send(new Packet(new OffsetEvent(0, offset)));
+			c.socket.send(new Packet(new OffsetEvent(0, offset < 0 ? 0 : offset)));
 	}
 
 }

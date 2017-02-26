@@ -9,9 +9,7 @@ public class Controller implements KeyListener {
 
 	public interface ControllerListener {
 
-		public void onPress(Direction d);
-
-		public void onRelease(Direction d);
+		public void onDirection(Direction d, boolean press);
 
 	}
 
@@ -64,7 +62,7 @@ public class Controller implements KeyListener {
 		int i;
 		if (d != null && !lastState[i = i(d)]) {
 			lastState[i] = true;
-			listener.onPress(d);
+			listener.onDirection(d, true);
 		}
 	}
 
@@ -74,7 +72,7 @@ public class Controller implements KeyListener {
 		int i;
 		if (d != null && lastState[i = i(d)]) {
 			lastState[i] = false;
-			listener.onRelease(d);
+			listener.onDirection(d, false);
 		}
 	}
 
