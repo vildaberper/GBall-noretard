@@ -90,7 +90,7 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 			}
 		} else if (obj instanceof Event) {
 			if (obj instanceof OffsetEvent) {
-				Time.setOffset(Time.getOffset() + ((OffsetEvent) obj).offset);
+				//Time.setOffset(Time.getOffset() + ((OffsetEvent) obj).offset);
 				System.out.println("offset=" + Time.getOffset());
 			} else
 				game.pushEvent((Event) obj);
@@ -118,7 +118,7 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 
 	@Override
 	public void onTimewarp(long offset, long entityId) {
-		Time.setOffset(Time.getOffset() + offset);
+		//Time.setOffset(Time.getOffset() + offset);
 		System.out.println("offset=" + Time.getOffset());
 	}
 
