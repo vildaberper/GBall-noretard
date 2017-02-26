@@ -70,6 +70,12 @@ public class StateManager {
 		couple(s2, s3);
 	}
 
+	private Snapshot backToState(Snapshot s) {
+		while (s != null && s.state == null)
+			s = s.previous;
+		return s;
+	}
+
 	private Snapshot back(Snapshot s) {
 		long frame = s.event.framestamp;
 
@@ -122,7 +128,7 @@ public class StateManager {
 			couple(fs, s, fs.next);
 
 		if (s.event.framestamp <= frame)
-			listener.onTimewarp(current = back(s.previous == null ? s : s.previous));
+			listener.onTimewarp(current = backToState(s));
 	}
 
 	@Override
