@@ -2,6 +2,7 @@ package GBall.engine;
 
 import GBall.GameState;
 import GBall.engine.event.Event;
+import GBall.engine.event.StateEvent;
 
 public class StateManager {
 
@@ -127,8 +128,20 @@ public class StateManager {
 		} else
 			couple(fs, s, fs.next);
 
-		if (s.event.framestamp <= frame)
-			listener.onTimewarp(current = backToState(s), frame - s.event.framestamp);
+		if (s.event.framestamp <= frame || s.event instanceof StateEvent) {
+			if (s.event instanceof StateEvent) {
+				decouple(s);
+				fs = back(fs);
+
+				if (fs.previous == null)
+					couple(last = s, fs);
+				else
+					couple(fs, s, fs.next);
+
+				listener.onTimewarp(current = fs, 0);
+			} else
+				listener.onTimewarp(current = back(backToState(s)), frame - s.event.framestamp);
+		}
 	}
 
 	@Override
