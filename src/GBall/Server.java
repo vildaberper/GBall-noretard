@@ -133,7 +133,7 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 		StateEvent gse;
 		Ship ship;
 		synchronized (game) {
-			if((ship = game.nextShip()) == null){
+			if ((ship = game.nextShip()) == null) {
 				socket.close();
 				clients.remove(socket.location);
 				return;
@@ -157,6 +157,15 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 
 		if (c != null)
 			c.socket.send(new Packet(new OffsetEvent(0, offset < 0 ? 0 : offset)));
+	}
+
+	@Override
+	public void onInvalidInput() {
+		StateEvent gse = new StateEvent(game.getState());
+
+		System.out.println("!!! invalid input !!!");
+		broadcast(gse);
+		game.pushEvent(gse);
 	}
 
 }

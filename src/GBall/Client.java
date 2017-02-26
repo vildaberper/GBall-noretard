@@ -121,4 +121,9 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 
 	}
 
+	@Override
+	public void onInvalidInput() {
+		
+	}
+
 }

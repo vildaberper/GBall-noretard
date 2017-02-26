@@ -32,6 +32,8 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 		void onGoal(boolean red);
 
 		void onTimewarp(long offset, long entityId);
+
+		void onInvalidInput();
 	}
 
 	private final World world;
@@ -152,7 +154,7 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 			if (queuedSize <= eventQueueFrame.size()) {
 				eventQueueFrame.clear();
-				System.out.println("!!! invalid inputs !!!");
+				listener.onInvalidInput();
 				break;
 			}
 		}
