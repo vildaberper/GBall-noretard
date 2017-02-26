@@ -140,6 +140,7 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 				gse = new StateEvent(game.getState());
 				aee = new AddEntityEvent(game.getFrame() + 1, ship.clone());
 			}
+			socket.send(new Packet(gse.framestamp));
 			socket.send(new Packet(gse));
 			broadcast(aee);
 			game.pushEvent(aee);

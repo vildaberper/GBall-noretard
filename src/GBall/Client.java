@@ -34,6 +34,8 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 
 	private long id = -1;
 
+	private boolean initialOffset = false;
+
 	private long startTime = -1;
 
 	private final Game game;
@@ -52,7 +54,7 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 		socket.open(this);
 		gw.addKeyListener(c);
 		while (true) {
-			if (startTime == -1) {
+			if (!initialOffset) {
 				gw.repaint();
 				sleep(Const.FRAME_INCREMENT);
 				continue;
@@ -78,9 +80,13 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 			if (startTime == -1) {
 				startTime = (Long) obj;
 				System.out.println("startTime=" + startTime);
-			} else {
+			} else if (id == -1) {
 				id = (Long) obj;
 				System.out.println("id=" + id);
+			} else {
+				Time.setOffset(startTime + ((Long) obj) * Const.FRAME_INCREMENT - Time.getTime());
+				System.out.println("initialOffset=" + Time.getOffset());
+				initialOffset = true;
 			}
 		} else if (obj instanceof Event) {
 			if (obj instanceof OffsetEvent) {
