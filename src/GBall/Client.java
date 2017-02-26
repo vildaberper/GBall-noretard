@@ -118,12 +118,13 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 
 	@Override
 	public void onTimewarp(long offset, long entityId) {
-
+		Time.setOffset(Time.getOffset() + offset);
+		System.out.println("offset=" + Time.getOffset());
 	}
 
 	@Override
 	public void onInvalidInput() {
-		
+
 	}
 
 }
