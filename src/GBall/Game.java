@@ -24,6 +24,7 @@ import GBall.engine.event.AddEntityEvent;
 import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
 import GBall.engine.event.GoalEvent;
+import GBall.engine.event.NothingEvent;
 import GBall.engine.event.StateEvent;
 
 public class Game implements WorldListener, GameWindowListener, StateListener {
@@ -153,6 +154,8 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 				onEvent(s);
 
 			if (queuedSize <= eventQueueFrame.size()) {
+				Snapshot s = eventQueueFrame.iterator().next();
+				s.event = new NothingEvent(s.event.framestamp);
 				eventQueueFrame.clear();
 				listener.onInvalidInput();
 				break;

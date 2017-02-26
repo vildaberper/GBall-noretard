@@ -155,6 +155,7 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 	public void onTimewarp(long offset, long entityId) {
 		Client c = getClient(entityId);
 
+		++offset;
 		if (c != null)
 			c.socket.send(new Packet(new OffsetEvent(0, offset < 0 ? 0 : offset)));
 	}

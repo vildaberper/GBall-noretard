@@ -17,7 +17,7 @@ public class StateManager {
 	public class Snapshot {
 
 		public GameState state;
-		public final Event event;
+		public Event event;
 
 		private Snapshot next = null;
 		private Snapshot previous = null;
