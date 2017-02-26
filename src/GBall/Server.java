@@ -125,27 +125,29 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 	@Override
 	public void onConnect(TCPSocket socket) {
 		Client client = new Client(socket);
-		Ship ship = game.nextShip();
 
-		if (ship != null) {
-			client.id = ship.id;
-			clients.put(socket.location, client);
-			socket.open(this);
-			socket.send(new Packet(startTime));
-			socket.send(new Packet(client.id));
+		clients.put(socket.location, client);
+		socket.open(this);
 
-			AddEntityEvent aee;
-			StateEvent gse;
-			synchronized (game) {
-				gse = new StateEvent(game.getState());
-				aee = new AddEntityEvent(game.getFrame() + 1, ship.clone());
+		AddEntityEvent aee;
+		StateEvent gse;
+		Ship ship;
+		synchronized (game) {
+			if((ship = game.nextShip()) == null){
+				socket.close();
+				clients.remove(socket.location);
+				return;
 			}
-			socket.send(new Packet(gse.framestamp));
-			socket.send(new Packet(gse));
-			broadcast(aee);
-			game.pushEvent(aee);
-		} else
-			socket.close();
+			gse = new StateEvent(game.getState());
+			aee = new AddEntityEvent(game.getFrame() + 2, ship.clone());
+		}
+		client.id = ship.id;
+		socket.send(new Packet(startTime));
+		socket.send(new Packet(client.id));
+		socket.send(new Packet(gse.framestamp));
+		socket.send(new Packet(gse));
+		broadcast(aee);
+		game.pushEvent(aee);
 
 	}
 

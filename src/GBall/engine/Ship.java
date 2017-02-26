@@ -28,7 +28,7 @@ public class Ship extends Entity implements ControllerListener {
 		down = s.down;
 		rotation = s.rotation;
 		braking = s.braking;
-		color = s.color;
+		color = new Color(s.color.getRGB());
 	}
 
 	public Ship(long id, Color color) {

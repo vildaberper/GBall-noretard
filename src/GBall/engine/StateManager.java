@@ -7,7 +7,7 @@ public class StateManager {
 
 	public interface StateListener {
 
-		public void onTimewarp(Snapshot snapshot);
+		public void onTimewarp(Snapshot snapshot, long offset);
 
 		public void onEvent(Snapshot snapshot);
 
@@ -128,7 +128,7 @@ public class StateManager {
 			couple(fs, s, fs.next);
 
 		if (s.event.framestamp <= frame)
-			listener.onTimewarp(current = backToState(s));
+			listener.onTimewarp(current = backToState(s), frame - s.event.framestamp);
 	}
 
 	@Override

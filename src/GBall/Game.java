@@ -12,6 +12,7 @@ import GBall.engine.Entity;
 import GBall.engine.GameWindow;
 import GBall.engine.Ship;
 import GBall.engine.StateManager;
+import GBall.engine.Time;
 import GBall.engine.StateManager.Snapshot;
 import GBall.engine.StateManager.StateListener;
 import GBall.engine.Vector2;
@@ -23,7 +24,6 @@ import GBall.engine.event.AddEntityEvent;
 import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
 import GBall.engine.event.GoalEvent;
-import GBall.engine.event.NothingEvent;
 import GBall.engine.event.StateEvent;
 
 public class Game implements WorldListener, GameWindowListener, StateListener {
@@ -36,9 +36,6 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 	private final World world;
 	private final StateManager stateManager;
-
-	public Ship s1, s2, s3, s4;
-	private Ball b;
 
 	private long frame = 0;
 
@@ -55,13 +52,7 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 		world = new World(this);
 		stateManager = new StateManager(this);
 
-		b = new Ball(0L);
-		s1 = new Ship(1L, Color.RED);
-		s2 = new Ship(2L, Color.RED);
-		s3 = new Ship(3L, Color.GREEN);
-		s4 = new Ship(4L, Color.GREEN);
-
-		world.addEntity(b);
+		world.addEntity(new Ball(0L));
 	}
 
 	public GameState getState() {
@@ -73,14 +64,6 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 		scoreRed = state.scoreRed;
 		scoreGreen = state.scoreGreen;
 		frame = state.frame;
-
-		b = (Ball) world.getEntity(0L);
-
-		Ship tmp;
-		s1 = (tmp = getShip(1L)) == null ? new Ship(1L, Color.RED) : tmp;
-		s2 = (tmp = getShip(2L)) == null ? new Ship(2L, Color.RED) : tmp;
-		s3 = (tmp = getShip(3L)) == null ? new Ship(3L, Color.GREEN) : tmp;
-		s4 = (tmp = getShip(4L)) == null ? new Ship(4L, Color.GREEN) : tmp;
 	}
 
 	public long getFrame() {
@@ -88,18 +71,49 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	}
 
 	public void saveState() {
-		stateManager.add(new NothingEvent(frame), getState());
+		pushEvent(new StateEvent(getState()));
 	}
 
 	public Ship nextShip() {
-		switch (world.size()) {
-		case 1:
+		if (world.getEntity(1L) == null) {
+			Ship s1 = new Ship(1L, Color.RED);
+			s1 = new Ship(1L, Color.RED);
+			s1.direction.set(1, 0);
+			s1.position.x = Const.START_TEAM1_SHIP1_X;
+			s1.position.y = Const.START_TEAM1_SHIP1_Y;
+			s1.velocity.zero();
+			s1.acceleration = 0.0;
+			world.addEntity(s1);
 			return s1;
-		case 2:
+		} else if (world.getEntity(2L) == null) {
+			Ship s2 = new Ship(2L, Color.RED);
+			s2 = new Ship(2L, Color.RED);
+			s2.direction.set(1, 0);
+			s2.position.x = Const.START_TEAM1_SHIP2_X;
+			s2.position.y = Const.START_TEAM1_SHIP2_Y;
+			s2.velocity.zero();
+			s2.acceleration = 0.0;
+			world.addEntity(s2);
 			return s2;
-		case 3:
+		} else if (world.getEntity(3L) == null) {
+			Ship s3 = new Ship(3L, Color.GREEN);
+			s3 = new Ship(3L, Color.GREEN);
+			s3.direction.set(-1, 0);
+			s3.position.x = Const.START_TEAM2_SHIP1_X;
+			s3.position.y = Const.START_TEAM2_SHIP1_Y;
+			s3.velocity.zero();
+			s3.acceleration = 0.0;
+			world.addEntity(s3);
 			return s3;
-		case 4:
+		} else if (world.getEntity(4L) == null) {
+			Ship s4 = new Ship(4L, Color.GREEN);
+			s4 = new Ship(4L, Color.GREEN);
+			s4.direction.set(-1, 0);
+			s4.position.x = Const.START_TEAM2_SHIP2_X;
+			s4.position.y = Const.START_TEAM2_SHIP2_Y;
+			s4.velocity.zero();
+			s4.acceleration = 0.0;
+			world.addEntity(s4);
 			return s4;
 		}
 		return null;
@@ -151,31 +165,49 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	}
 
 	public void reset() {
-		s1.direction.set(1, 0);
-		s2.direction.set(1, 0);
+		Entity tmp;
 
-		s3.direction.set(-1, 0);
-		s4.direction.set(-1, 0);
+		if ((tmp = world.getEntity(1L)) != null) {
+			Ship s1 = (Ship) tmp;
+			s1.direction.set(1, 0);
+			s1.position.x = Const.START_TEAM1_SHIP1_X;
+			s1.position.y = Const.START_TEAM1_SHIP1_Y;
+			s1.velocity.zero();
+			s1.acceleration = 0.0;
+		}
 
-		world.forEachEntity(e -> {
-			e.velocity.zero();
-			e.acceleration = 0.0;
-		});
+		if ((tmp = world.getEntity(2L)) != null) {
+			Ship s2 = (Ship) tmp;
+			s2.direction.set(1, 0);
+			s2.position.x = Const.START_TEAM1_SHIP2_X;
+			s2.position.y = Const.START_TEAM1_SHIP2_Y;
+			s2.velocity.zero();
+			s2.acceleration = 0.0;
+		}
 
-		s1.position.x = Const.START_TEAM1_SHIP1_X;
-		s1.position.y = Const.START_TEAM1_SHIP1_Y;
+		if ((tmp = world.getEntity(3L)) != null) {
+			Ship s3 = (Ship) tmp;
+			s3.direction.set(-1, 0);
+			s3.position.x = Const.START_TEAM2_SHIP1_X;
+			s3.position.y = Const.START_TEAM2_SHIP1_Y;
+			s3.velocity.zero();
+			s3.acceleration = 0.0;
+		}
 
-		s2.position.x = Const.START_TEAM1_SHIP2_X;
-		s2.position.y = Const.START_TEAM1_SHIP2_Y;
+		if ((tmp = world.getEntity(4L)) != null) {
+			Ship s4 = (Ship) tmp;
+			s4.direction.set(-1, 0);
+			s4.position.x = Const.START_TEAM2_SHIP2_X;
+			s4.position.y = Const.START_TEAM2_SHIP2_Y;
+			s4.velocity.zero();
+			s4.acceleration = 0.0;
+		}
 
-		s3.position.x = Const.START_TEAM2_SHIP1_X;
-		s3.position.y = Const.START_TEAM2_SHIP1_Y;
-
-		s4.position.x = Const.START_TEAM2_SHIP2_X;
-		s4.position.y = Const.START_TEAM2_SHIP2_Y;
-
+		Ball b = (Ball) world.getEntity(0);
 		b.position.x = Const.BALL_X;
 		b.position.y = Const.BALL_Y;
+		b.velocity.zero();
+		b.acceleration = 0.0;
 	}
 
 	public void pushEvent(Event event) {
@@ -251,14 +283,15 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 		}
 
 		gw.drawString(Long.toString(getFrame()), new Vector2(500, 50));
+		gw.drawString(Long.toString(Time.getOffset()), new Vector2(500, 70));
 
 	}
 
 	@Override
-	public void onTimewarp(Snapshot snapshot) {
+	public void onTimewarp(Snapshot snapshot, long offset) {
 		long currentFrame = frame;
 
-		listener.onTimewarp((frame - snapshot.state.frame) * Const.FRAME_INCREMENT, snapshot.event.getEntityId());
+		listener.onTimewarp(offset * Const.FRAME_INCREMENT, snapshot.event.getEntityId());
 
 		System.out.println("timewarp to frame " + snapshot.state.frame + " from " + frame);
 		System.out.println("  ->" + snapshot.event.toString());
