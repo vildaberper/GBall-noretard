@@ -151,6 +151,7 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 				onEvent(s);
 
 			if (queuedSize <= eventQueueFrame.size()) {
+				eventQueueFrame.clear();
 				System.out.println("!!! invalid inputs !!!");
 				break;
 			}
