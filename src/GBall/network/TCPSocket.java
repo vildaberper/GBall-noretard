@@ -36,7 +36,7 @@ public class TCPSocket {
 		ois = new ObjectInputStream(socket.getInputStream());
 	}
 
-	public void send(Packet packet) {
+	public synchronized void send(Packet packet) {
 		sendBuffer.add(packet);
 		sendThread.interrupt();
 	}

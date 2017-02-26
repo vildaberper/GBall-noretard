@@ -190,15 +190,13 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 		case LEFT: {
 			if (e instanceof Ball)
 				listener.onGoal(false);
-			else
-				e.position.x += e.radius() - dist;
+			e.position.x += e.radius() - dist;
 			break;
 		}
 		case RIGHT: {
 			if (e instanceof Ball)
 				listener.onGoal(true);
-			else
-				e.position.x -= e.radius() - dist;
+			e.position.x -= e.radius() - dist;
 			break;
 		}
 		case UP: {
