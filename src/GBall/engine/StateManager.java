@@ -103,10 +103,25 @@ public class StateManager {
 	}
 
 	public void clean() {
+		if (first == null)
+			return;
+
+		int size = 1;
+		Snapshot tmp = first;
+
+		while (tmp.next != null) {
+			tmp = tmp.next;
+			++size;
+		}
+		if (size <= 10)
+			return;
+
 		while (first != null && first != last && (frame - first.event.framestamp) > Const.OUTDATED_THRESHOLD) {
 			Snapshot temp = first.next;
 			decouple(first);
 			first = temp;
+			if (--size <= 10)
+				break;
 		}
 	}
 
@@ -139,6 +154,7 @@ public class StateManager {
 		}
 
 		if (s.event.framestamp <= frame) {
+			listener.onTimewarp(current = backToState(back(s)), frame - s.event.framestamp);
 		}
 	}
 
