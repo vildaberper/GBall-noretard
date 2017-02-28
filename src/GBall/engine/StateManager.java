@@ -139,7 +139,6 @@ public class StateManager {
 		}
 
 		if (s.event.framestamp <= frame) {
-			listener.onTimewarp(current = back(backToState(s)), frame - s.event.framestamp);
 		}
 	}
 
