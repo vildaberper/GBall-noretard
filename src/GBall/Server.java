@@ -74,11 +74,10 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 		startTime = Time.getTime();
 		System.out.println("startTime=" + startTime);
 		while (true) {
-			/*
-			 * if (game.getFrame() % Const.PERIODIC_STATES == 0L)
-			 * broadcast(game.getState());
-			 */
 			synchronized (game) {
+				/*if (game.getFrame() % Const.PERIODIC_STATES == 0L)
+					broadcast(new StateEvent(game.getState()));*/
+
 				game.tick();
 				gw.repaint();
 			}

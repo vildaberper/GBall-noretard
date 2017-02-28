@@ -90,7 +90,8 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 			}
 		} else if (obj instanceof Event) {
 			if (obj instanceof OffsetEvent) {
-				//Time.setOffset(Time.getOffset() + ((OffsetEvent) obj).offset);
+				// Time.setOffset(Time.getOffset() + ((OffsetEvent)
+				// obj).offset);
 				System.out.println("offset=" + Time.getOffset());
 			} else
 				game.pushEvent((Event) obj);
@@ -100,7 +101,7 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 	private void localEvent(Direction d, boolean press) {
 		ControllerEvent event;
 		synchronized (game) {
-			event = new ControllerEvent(game.getFrame() + Const.LOCAL_DELAY * 0 + 5000L / Const.FRAME_INCREMENT, id, d, press);
+			event = new ControllerEvent(game.getFrame() + Const.LOCAL_DELAY, id, d, press);
 		}
 		socket.send(new Packet(event));
 		game.pushEvent(event);
@@ -118,7 +119,7 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 
 	@Override
 	public void onTimewarp(long offset, long entityId) {
-		//Time.setOffset(Time.getOffset() - offset);
+		// Time.setOffset(Time.getOffset() - offset);
 		System.out.println("offset=" + Time.getOffset());
 	}
 
