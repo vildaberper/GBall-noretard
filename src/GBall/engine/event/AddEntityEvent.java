@@ -14,7 +14,7 @@ public class AddEntityEvent extends Event {
 
 	@Override
 	public String toString() {
-		return "AddEntityEvent - " + framestamp + " " + entity.id;
+		return "AddEntityEvent - " + frame + " " + entity.id;
 	}
 
 }

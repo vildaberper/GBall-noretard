@@ -13,7 +13,7 @@ import GBall.engine.GameWindow;
 import GBall.engine.Ship;
 import GBall.engine.StateManager;
 import GBall.engine.Time;
-import GBall.engine.StateManager.Snapshot;
+import GBall.engine.StateManager.Frame;
 import GBall.engine.StateManager.StateListener;
 import GBall.engine.Vector2;
 import GBall.engine.Vector2.Direction;
@@ -24,7 +24,6 @@ import GBall.engine.event.AddEntityEvent;
 import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
 import GBall.engine.event.GoalEvent;
-import GBall.engine.event.NothingEvent;
 import GBall.engine.event.StateEvent;
 
 public class Game implements WorldListener, GameWindowListener, StateListener {
@@ -45,7 +44,7 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	private int scoreRed = 0, scoreGreen = 0;
 	private final GameListener listener;
 
-	private HashSet<Snapshot> eventQueueFrame = new HashSet<Snapshot>();
+	private HashSet<Event> eventQueueFrame = new HashSet<Event>();
 
 	private Queue<Event> eventQueue = new ConcurrentLinkedQueue<Event>();
 
@@ -136,36 +135,17 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	}
 
 	private void update() {
-		{
-			Event event = null;
-			while ((event = eventQueue.poll()) != null)
-				stateManager.add(event, null);
-		}
-
 		++frame;
 		stateManager.step(frame);
-
-		int queuedSize;
-		while ((queuedSize = eventQueueFrame.size()) > 0) {
-			HashSet<Snapshot> tmp = eventQueueFrame;
-			eventQueueFrame = new HashSet<Snapshot>();
-
-			for (Snapshot s : tmp)
-				onEvent(s);
-
-			if (queuedSize <= eventQueueFrame.size()) {
-				Snapshot s = eventQueueFrame.iterator().next();
-				s.event = new NothingEvent(s.event.framestamp);
-				eventQueueFrame.clear();
-				listener.onInvalidInput();
-				break;
-			}
-		}
-
 		world.update(frame);
 	}
 
 	public void tick() {
+		{
+			Event event = null;
+			while ((event = eventQueue.poll()) != null)
+				stateManager.push(event);
+		}
 		update();
 		stateManager.clean();
 	}
@@ -294,28 +274,45 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	}
 
 	@Override
-	public void onTimewarp(Snapshot snapshot, long offset) {
-		long currentFrame = frame;
+	public void onTimewarp(GameState state, Event source) {
+		listener.onTimewarp((frame - source.frame) * Const.FRAME_INCREMENT, source.getEntityId());
 
-		listener.onTimewarp(offset * Const.FRAME_INCREMENT, snapshot.event.getEntityId());
+		System.out.println("timewarp to frame " + state.frame + " from " + frame);
+		System.out.println("source " + source.toString());
 
-		System.out.println("timewarp to frame " + snapshot.state.frame + " from " + frame);
-		System.out.println("  ->" + snapshot.event.toString());
-
-		setState(snapshot.state);
+		long currentFrame = getFrame();
+		setState(state);
 		--frame;
-		while (frame <= currentFrame)
+		while (frame < currentFrame)
 			update();
+
 	}
 
 	@Override
-	public void onEvent(Snapshot snapshot) {
-		snapshot.state = getState();
+	public void onFrame(Frame frame) {
+		frame.state = getState();
+		frame.events.forEach(e -> onEvent(e));
 
-		System.out.println("  event(" + getFrame() + "):" + snapshot.event.toString());
+		int queuedSize;
+		while ((queuedSize = eventQueueFrame.size()) > 0) {
+			HashSet<Event> tmp = eventQueueFrame;
+			eventQueueFrame = new HashSet<Event>();
 
-		if (snapshot.event instanceof ControllerEvent) {
-			ControllerEvent ce = (ControllerEvent) snapshot.event;
+			tmp.forEach(e -> onEvent(e));
+
+			if (queuedSize <= eventQueueFrame.size()) {
+				eventQueueFrame.clear();
+				listener.onInvalidInput();
+				break;
+			}
+		}
+	}
+
+	public void onEvent(Event event) {
+		System.out.println("  event(" + getFrame() + "):" + event.toString());
+
+		if (event instanceof ControllerEvent) {
+			ControllerEvent ce = (ControllerEvent) event;
 			Ship s = getShip(ce.entityId);
 
 			if (s == null) {
@@ -324,11 +321,16 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 			}
 
 			if (!(ce.press ^ s.isPressed(ce.direction)))
-				eventQueueFrame.add(snapshot);
+				eventQueueFrame.add(event);
 			else
 				s.onDirection(ce.direction, ce.press);
-		} else if (snapshot.event instanceof GoalEvent) {
-			GoalEvent ge = (GoalEvent) snapshot.event;
+		} else if (event instanceof GoalEvent) {
+			if (eventQueueFrame.size() > 0) {
+				eventQueueFrame.add(event);
+				return;
+			}
+
+			GoalEvent ge = (GoalEvent) event;
 
 			if (ge.red)
 				++scoreRed;
@@ -336,12 +338,17 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 				++scoreGreen;
 
 			reset();
-		} else if (snapshot.event instanceof AddEntityEvent) {
-			AddEntityEvent aee = (AddEntityEvent) snapshot.event;
+		} else if (event instanceof AddEntityEvent) {
+			AddEntityEvent aee = (AddEntityEvent) event;
 
 			world.addEntity(aee.entity.clone());
-		} else if (snapshot.event instanceof StateEvent) {
-			StateEvent se = (StateEvent) snapshot.event;
+		} else if (event instanceof StateEvent) {
+			if (eventQueueFrame.size() > 0) {
+				eventQueueFrame.add(event);
+				return;
+			}
+
+			StateEvent se = (StateEvent) event;
 
 			setState(se.state);
 		}

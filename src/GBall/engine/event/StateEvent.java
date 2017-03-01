@@ -14,7 +14,7 @@ public class StateEvent extends Event {
 
 	@Override
 	public String toString() {
-		return "StateEvent - " + framestamp;
+		return "StateEvent - " + frame;
 	}
 
 }

@@ -12,7 +12,7 @@ public class GoalEvent extends Event {
 
 	@Override
 	public String toString() {
-		return "GoalEvent - " + framestamp + " " + red;
+		return "GoalEvent - " + frame + " " + red;
 	}
 
 }

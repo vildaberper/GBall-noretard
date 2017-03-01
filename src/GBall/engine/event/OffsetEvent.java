@@ -12,7 +12,7 @@ public class OffsetEvent extends Event {
 
 	@Override
 	public String toString() {
-		return "OffsetEvent - " + framestamp + " " + offset;
+		return "OffsetEvent - " + frame + " " + offset;
 	}
 
 }

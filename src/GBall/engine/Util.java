@@ -17,6 +17,13 @@ public class Util {
 		return d1 > d2 ? d1 - d2 : d2 - d1;
 	}
 
+	public static long minmax(long l, long minmax) {
+		if (minmax < 0)
+			minmax = -minmax;
+
+		return l > minmax ? minmax : (l < -minmax ? -minmax : l);
+	}
+
 	public static HashMap<Long, Entity> clone(HashMap<Long, Entity> map) {
 		HashMap<Long, Entity> nmap = new HashMap<Long, Entity>();
 		map.entrySet().forEach(e -> {

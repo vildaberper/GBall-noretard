@@ -29,8 +29,8 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 
 	private final TCPSocket socket;
 
-	private final Location server = new Location("tfbs.no-ip.org", 25565);
-	// private final Location server = new Location("localhost", 25565);
+	// private final Location server = new Location("tfbs.no-ip.org", 25565);
+	private final Location server = new Location("localhost", 25565);
 
 	private long id = -1;
 
@@ -90,11 +90,17 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 			}
 		} else if (obj instanceof Event) {
 			if (obj instanceof OffsetEvent) {
-				// Time.setOffset(Time.getOffset() + ((OffsetEvent)
-				// obj).offset);
-				System.out.println("offset=" + Time.getOffset());
-			} else
-				game.pushEvent((Event) obj);
+				long deltaOffset = ((OffsetEvent) obj).offset - Const.LOCAL_DELAY;
+				Time.setOffset(Time.getOffset() + minmax(deltaOffset / 2L, 50L));
+			} else {
+				Event e = (Event) obj;
+
+				long diff = startTime + (e.frame - Const.LOCAL_DELAY) * Const.FRAME_INCREMENT - Time.getTime();
+				if (diff > 0)
+					Time.setOffset(Time.getOffset() + minmax(diff, 5L));
+
+				game.pushEvent(e);
+			}
 		}
 	}
 
@@ -119,13 +125,12 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 
 	@Override
 	public void onTimewarp(long offset, long entityId) {
-		// Time.setOffset(Time.getOffset() - offset);
-		System.out.println("offset=" + Time.getOffset());
+		Time.setOffset(Time.getOffset() - minmax((offset - Const.LOCAL_DELAY / 2L) / 2L, 10L));
 	}
 
 	@Override
 	public void onInvalidInput() {
-
+		System.out.println("!!! invalid input !!!");
 	}
 
 }

@@ -75,10 +75,11 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 		System.out.println("startTime=" + startTime);
 		while (true) {
 			synchronized (game) {
-				/*if (game.getFrame() % Const.PERIODIC_STATES == 0L)
-					broadcast(new StateEvent(game.getState()));*/
-
 				game.tick();
+
+				// if (game.getFrame() % Const.PERIODIC_STATES == 0L)
+				// broadcast(new StateEvent(game.getState()));
+
 				gw.repaint();
 			}
 
@@ -138,12 +139,12 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 				return;
 			}
 			gse = new StateEvent(game.getState());
-			aee = new AddEntityEvent(game.getFrame() + 2, ship.clone());
+			aee = new AddEntityEvent(game.getFrame() + 1, ship.clone());
 		}
 		client.id = ship.id;
 		socket.send(new Packet(startTime));
 		socket.send(new Packet(client.id));
-		socket.send(new Packet(gse.framestamp));
+		socket.send(new Packet(gse.frame));
 		socket.send(new Packet(gse));
 		broadcast(aee);
 		game.pushEvent(aee);
@@ -156,16 +157,12 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 
 		++offset;
 		if (c != null)
-			c.socket.send(new Packet(new OffsetEvent(0, offset < 0 ? 0 : offset)));
+			c.socket.send(new Packet(new OffsetEvent(0, offset)));
 	}
 
 	@Override
 	public void onInvalidInput() {
-		StateEvent gse = new StateEvent(game.getState());
-
 		System.out.println("!!! invalid input !!!");
-		broadcast(gse);
-		game.pushEvent(gse);
 	}
 
 }
