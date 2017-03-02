@@ -3,6 +3,7 @@ package GBall;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import GBall.Game.GameListener;
@@ -21,6 +22,7 @@ import GBall.network.SocketListener;
 import GBall.network.TCPServerSocket;
 import GBall.network.TCPServerSocket.TCPServerSocketListener;
 import GBall.network.TCPSocket;
+import GBall.network.UDPSocket;
 
 import static GBall.engine.Util.*;
 
@@ -35,17 +37,23 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 
 		public long id = -1;
 
-		public final TCPSocket socket;
+		//public final TCPSocket socket;
+		public final UDPSocket socket;
 
-		public Client(TCPSocket socket) {
-			this.socket = socket;
+		//public Client(TCPSocket socket) {
+			//this.socket = socket;		
+		//}
+		
+		public Client(UDPSocket socket) {
+			this.socket  = socket;
 		}
 
 	}
 
 	private Map<Location, Client> clients = new ConcurrentHashMap<Location, Client>();
 
-	private final TCPServerSocket socket;
+	//private final TCPServerSocket socket;
+	private final UDPSocket socket;
 
 	private long startTime;
 
@@ -53,7 +61,8 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 	private final GameWindow gw;
 
 	public Server() throws IOException {
-		socket = new TCPServerSocket(25565);
+		//socket = new TCPServerSocket(25565);
+		socket = new UDPSocket(25565);
 		game = new Game(this);
 		gw = new GameWindow(game);
 	}
@@ -96,7 +105,7 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 				if (e.getValue().equals(c))
 					return;
 
-			e.getValue().socket.send(new Packet(s));
+			e.getValue().socket.send(e.getKey(), new Packet(s));
 		});
 	}
 
@@ -105,6 +114,9 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 		Client client = clients.get(source);
 
 		Event event = (Event) packet.getObject();
+		
+		if (!clients.containsKey(source))
+			udpConnect(source);
 
 		/*
 		 * TODO validate ControllerEvent and entity id.
@@ -112,6 +124,33 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 
 		broadcast(event, client);
 		game.pushEvent(event);
+	}
+	
+	private void udpConnect(Location location) {
+		Client client = new Client(socket);
+		
+		clients.put(location, client);
+		socket.open(this);
+
+		AddEntityEvent aee;
+		StateEvent gse;
+		Ship ship;
+		synchronized (game) {
+			if ((ship = game.nextShip()) == null) {
+				socket.close();
+				clients.remove(location);
+				return;
+			}
+			gse = new StateEvent(game.getState());
+			aee = new AddEntityEvent(game.getFrame() + 1, ship.clone());
+		}
+		client.id = ship.id;
+		client.socket.send(location, new Packet(startTime));
+		client.socket.send(location, new Packet(client.id));
+		client.socket.send(location, new Packet(gse.frame));
+		client.socket.send(location, new Packet(gse));
+		broadcast(aee);
+		game.pushEvent(aee);
 	}
 
 	@Override
@@ -124,7 +163,7 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 
 	@Override
 	public void onConnect(TCPSocket socket) {
-		Client client = new Client(socket);
+		Client client = null;//new Client(socket);
 
 		clients.put(socket.location, client);
 		socket.open(this);
@@ -153,11 +192,21 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 
 	@Override
 	public void onTimewarp(long offset, long entityId) {
-		Client c = getClient(entityId);
+		Client c = getClient(entityId);		
 
 		++offset;
 		if (c != null)
-			c.socket.send(new Packet(new OffsetEvent(0, offset)));
+			c.socket.send(getLocationByClient(c), new Packet(new OffsetEvent(0, offset)));
+			//c.socket.send(new Packet(new OffsetEvent(0, offset)));
+	}
+	
+	private Location getLocationByClient(Client c) {		
+		for (Entry<Location, Client> e : clients.entrySet()) {
+			if (e.getValue().equals(c))
+				return e.getKey();
+		}
+		
+		return null;
 	}
 
 	@Override

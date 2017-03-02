@@ -17,6 +17,7 @@ import GBall.network.Location;
 import GBall.network.Packet;
 import GBall.network.SocketListener;
 import GBall.network.TCPSocket;
+import GBall.network.UDPSocket;
 
 import static GBall.engine.Util.*;
 
@@ -27,10 +28,11 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 		c.run();
 	}
 
-	private final TCPSocket socket;
+	//private final TCPSocket socket;
+	private final UDPSocket socket;
 
-	private final Location server = new Location("193.11.162.104", 25565);
-	// private final Location server = new Location("localhost", 25565);
+	//private final Location server = new Location("193.11.162.104", 25565);
+	 private final Location server = new Location("localhost", 25565);
 
 	private long id = -1;
 
@@ -42,7 +44,8 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 	private final GameWindow gw;
 
 	public Client() throws UnknownHostException, IOException {
-		socket = new TCPSocket(server);
+		//socket = new TCPSocket(server);
+		socket = new UDPSocket();
 		game = new Game(this);
 		gw = new GameWindow(game);
 	}
@@ -109,7 +112,8 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 		synchronized (game) {
 			event = new ControllerEvent(game.getFrame() + Const.LOCAL_DELAY, id, d, press);
 		}
-		socket.send(new Packet(event));
+		//socket.send(new Packet(event));
+		socket.send(server, new Packet(event));
 		game.pushEvent(event);
 	}
 
