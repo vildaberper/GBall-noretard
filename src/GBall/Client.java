@@ -29,7 +29,7 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 
 	private final TCPSocket socket;
 
-	private final Location server = new Location("tfbs.no-ip.org", 25565);
+	private final Location server = new Location("193.11.162.104", 25565);
 	// private final Location server = new Location("localhost", 25565);
 
 	private long id = -1;
