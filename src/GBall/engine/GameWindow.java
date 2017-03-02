@@ -56,6 +56,10 @@ public class GameWindow extends Frame implements WindowListener {
 				(int) (position.y + Math.sin(angle) * length));
 	}
 
+	public void fillRect(int x, int y, int width, int height) {
+		offScreenGraphicsCtx.fillRect(x, y, width, height);
+	}
+
 	@Override
 	public void update(Graphics g) {
 		if (offScreenGraphicsCtx == null) {
