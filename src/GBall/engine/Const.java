@@ -9,7 +9,7 @@ public final class Const {
 	public final static long FRAME_INCREMENT = (long) (1000.0 / TARGET_FPS);
 	public final static double DT = FRAME_INCREMENT / 1000.0;
 
-	public final static long LOCAL_DELAY = 100L / FRAME_INCREMENT;
+	public final static long LOCAL_DELAY = 200L / FRAME_INCREMENT;
 
 	public final static long PERIODIC_STATES = 10000L / FRAME_INCREMENT;
 
