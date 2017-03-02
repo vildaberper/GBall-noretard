@@ -29,6 +29,9 @@ public final class Const {
 	public final static Vector2 TEAM1_SCORE_TEXT_POSITION = new Vector2((double) (DISPLAY_WIDTH / 2) - 120, 52.0);
 	public final static Vector2 TEAM2_SCORE_TEXT_POSITION = new Vector2((double) (DISPLAY_WIDTH / 2) + 120, 52.0);
 	public final static Font SCORE_FONT = new Font("Times New Roman", Font.BOLD, FONT_SIZE);
+	public final static int GOAL_WIDTH = 15;
+	public final static int TEAM1_GOAL_POSITION = 0;
+	public final static int TEAM2_GOAL_POSITION = DISPLAY_WIDTH - GOAL_WIDTH;
 
 	public final static Color TEAM1_COLOR = Color.RED;
 	public final static Color TEAM2_COLOR = Color.GREEN;

@@ -2,6 +2,7 @@ package GBall;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.time.temporal.TemporalAmount;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -202,7 +203,8 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 	@Override
 	public void onWallCollide(Entity e, Direction d, double dist) {
-		e.velocity.invertInDirection(d);
+		if (!(e instanceof Ball))
+			e.velocity.invertInDirection(d);
 
 		switch (d) {
 		case LEFT: {
@@ -245,6 +247,10 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 	@Override
 	public void render(GameWindow gw) {
+		gw.setColor(Const.TEAM1_COLOR);
+		gw.fillRect(Const.TEAM1_GOAL_POSITION, 0, Const.GOAL_WIDTH, Const.DISPLAY_HEIGHT);
+		gw.setColor(Const.TEAM2_COLOR);
+		gw.fillRect(Const.TEAM2_GOAL_POSITION, 0, Const.GOAL_WIDTH, Const.DISPLAY_HEIGHT);
 		world.render(gw);
 
 		gw.setFont_(Const.SCORE_FONT);
