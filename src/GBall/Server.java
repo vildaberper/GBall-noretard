@@ -3,7 +3,6 @@ package GBall;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import GBall.Game.GameListener;
@@ -16,43 +15,27 @@ import GBall.engine.event.Event;
 import GBall.engine.event.GoalEvent;
 import GBall.engine.event.OffsetEvent;
 import GBall.engine.event.StateEvent;
+import GBall.network.Ack;
+import GBall.network.Connection;
+import GBall.network.Connection.ConnectionListener;
+import GBall.network.Handshake;
 import GBall.network.Location;
 import GBall.network.Packet;
 import GBall.network.SocketListener;
-import GBall.network.TCPServerSocket;
-import GBall.network.TCPServerSocket.TCPServerSocketListener;
-import GBall.network.TCPSocket;
 import GBall.network.UDPSocket;
 
 import static GBall.engine.Util.*;
 
-public class Server implements SocketListener, GameListener, TCPServerSocketListener {
+public class Server implements ConnectionListener, SocketListener, GameListener {
 
 	public static void main(String[] args) throws IOException {
 		Server s = new Server();
 		s.run();
 	}
 
-	private class Client {
+	
+	private Map<Location, Connection> connections = new ConcurrentHashMap<Location, Connection>();
 
-		public long id = -1;
-
-		//public final TCPSocket socket;
-		public final UDPSocket socket;
-
-		//public Client(TCPSocket socket) {
-			//this.socket = socket;		
-		//}
-		
-		public Client(UDPSocket socket) {
-			this.socket  = socket;
-		}
-
-	}
-
-	private Map<Location, Client> clients = new ConcurrentHashMap<Location, Client>();
-
-	//private final TCPServerSocket socket;
 	private final UDPSocket socket;
 
 	private long startTime;
@@ -61,15 +44,14 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 	private final GameWindow gw;
 
 	public Server() throws IOException {
-		//socket = new TCPServerSocket(25565);
 		socket = new UDPSocket(25565);
 		game = new Game(this);
 		gw = new GameWindow(game);
 	}
 
-	private Client getClient(long id) {
-		for (Client c : clients.values())
-			if (c.id == id)
+	private Connection getConnection(long id) {
+		for (Connection c : connections.values())
+			if (c.clientId == id)
 				return c;
 		return null;
 	}
@@ -98,60 +80,48 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 				sleep(timeToSleep);
 		}
 	}
-
-	private void broadcast(Serializable s, Client... except) {
-		clients.entrySet().forEach(e -> {
-			for (Client c : except)
+	
+	private void broadcast(Serializable s, Connection... except) {
+		connections.entrySet().forEach(e -> {
+			for (Connection c : except)
 				if (e.getValue().equals(c))
 					return;
-
-			e.getValue().socket.send(e.getKey(), new Packet(s));
+			
+			e.getValue().send(new Packet(s));
 		});
 	}
-
+	
 	@Override
 	public void onReceive(Location source, Packet packet) {
-		Client client = clients.get(source);
-
-		Event event = (Event) packet.getObject();
+		Connection connection = connections.get(source);
 		
-		if (!clients.containsKey(source))
-			udpConnect(source);
-
+		if (connection == null) {
+			new Connection(source, socket, this).connect();
+			return;
+		}
+		if (packet.getObject() instanceof Ack) {
+			Ack ack = (Ack) packet.getObject();
+			connection.addAck(ack.id);
+			return;
+		}
+		connection.sendAck(packet.id);
+		
+		if (connection.handled(packet.id))
+			return;
+		
+		connection.addHandled(packet.id);		
+		
+		if (packet.getObject() instanceof Long)
+			return;
+		
+		Event event = (Event) packet.getObject();		
 		/*
 		 * TODO validate ControllerEvent and entity id.
 		 */
 
-		broadcast(event, client);
+		broadcast(event, connection);
 		game.pushEvent(event);
-	}
-	
-	private void udpConnect(Location location) {
-		Client client = new Client(socket);
-		
-		clients.put(location, client);
-		socket.open(this);
-
-		AddEntityEvent aee;
-		StateEvent gse;
-		Ship ship;
-		synchronized (game) {
-			if ((ship = game.nextShip()) == null) {
-				socket.close();
-				clients.remove(location);
-				return;
-			}
-			gse = new StateEvent(game.getState());
-			aee = new AddEntityEvent(game.getFrame() + 1, ship.clone());
-		}
-		client.id = ship.id;
-		client.socket.send(location, new Packet(startTime));
-		client.socket.send(location, new Packet(client.id));
-		client.socket.send(location, new Packet(gse.frame));
-		client.socket.send(location, new Packet(gse));
-		broadcast(aee);
-		game.pushEvent(aee);
-	}
+	}	
 
 	@Override
 	public void onGoal(boolean red) {
@@ -162,56 +132,40 @@ public class Server implements SocketListener, GameListener, TCPServerSocketList
 	}
 
 	@Override
-	public void onConnect(TCPSocket socket) {
-		Client client = null;//new Client(socket);
-
-		clients.put(socket.location, client);
-		socket.open(this);
-
-		AddEntityEvent aee;
-		StateEvent gse;
-		Ship ship;
-		synchronized (game) {
-			if ((ship = game.nextShip()) == null) {
-				socket.close();
-				clients.remove(socket.location);
-				return;
-			}
-			gse = new StateEvent(game.getState());
-			aee = new AddEntityEvent(game.getFrame() + 1, ship.clone());
-		}
-		client.id = ship.id;
-		socket.send(new Packet(startTime));
-		socket.send(new Packet(client.id));
-		socket.send(new Packet(gse.frame));
-		socket.send(new Packet(gse));
-		broadcast(aee);
-		game.pushEvent(aee);
-
-	}
-
-	@Override
 	public void onTimewarp(long offset, long entityId) {
-		Client c = getClient(entityId);		
+		Connection c = getConnection(entityId);		
 
 		++offset;
 		if (c != null)
-			c.socket.send(getLocationByClient(c), new Packet(new OffsetEvent(0, offset)));
-			//c.socket.send(new Packet(new OffsetEvent(0, offset)));
-	}
-	
-	private Location getLocationByClient(Client c) {		
-		for (Entry<Location, Client> e : clients.entrySet()) {
-			if (e.getValue().equals(c))
-				return e.getKey();
-		}
-		
-		return null;
+			c.send(new Packet(new OffsetEvent(0, offset)));
 	}
 
 	@Override
 	public void onInvalidInput() {
 		System.out.println("!!! invalid input !!!");
+	}
+
+	@Override
+	public void onConnect(Connection c) {		
+		connections.put(c.location, c);
+		
+		AddEntityEvent aee;
+		StateEvent gse;
+		Ship ship;
+		synchronized (game) {
+			if ((ship = game.nextShip()) == null) {
+				c.close();
+				connections.remove(c.location);
+				return;
+			}
+			gse = new StateEvent(game.getState());
+			aee = new AddEntityEvent(game.getFrame() + 1, ship.clone());
+		}
+		c.clientId = ship.id;
+		game.pushEvent(aee);
+		c.send(new Packet(new Handshake(startTime, c.clientId, gse.frame, gse)));
+		
+		broadcast(aee);		
 	}
 
 }

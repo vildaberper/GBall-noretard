@@ -41,10 +41,12 @@ public class Packet implements Serializable {
 		return null;
 	}
 
-	private final byte[] data;
+	
+	private byte[] data;
+	public Long id;		
 
 	public Packet(byte[] data) {
-		this.data = data;
+		this.data = data;		
 	}
 
 	public Packet(Serializable o) {
@@ -52,9 +54,13 @@ public class Packet implements Serializable {
 	}
 
 	public Packet(DatagramPacket datagramPacket) {
-		data = new byte[datagramPacket.getLength()];
-		System.arraycopy(datagramPacket.getData(), datagramPacket.getOffset(), data, 0,
+		
+		byte[] tempdata = new byte[datagramPacket.getLength()];
+		System.arraycopy(datagramPacket.getData(), datagramPacket.getOffset(), tempdata, 0,
 				datagramPacket.getLength());
+		PacketWrapper wrapper = (PacketWrapper)desieralize(tempdata);
+		data = wrapper.data;
+		id = wrapper.id;
 	}
 
 	public Object getObject() {
@@ -66,12 +72,19 @@ public class Packet implements Serializable {
 	}
 
 	public DatagramPacket toDatagramPacket(Location target) {
-		return new DatagramPacket(getData(), 0, getData().length, target.ip, target.port);
+		byte[] wrapper = serialize(new PacketWrapper(id, getData()));
+		return new DatagramPacket(wrapper, 0, wrapper.length, target.ip, target.port);
 	}
+	
 
 	@Override
 	public Packet clone() {
 		return new Packet(getData().clone());
+	}
+	
+	@Override
+	public String toString() {
+		return "Packet - id: " + id;
 	}
 
 }

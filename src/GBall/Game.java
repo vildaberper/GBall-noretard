@@ -2,7 +2,6 @@ package GBall;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.time.temporal.TemporalAmount;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -203,8 +202,7 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 	@Override
 	public void onWallCollide(Entity e, Direction d, double dist) {
-		if (!(e instanceof Ball))
-			e.velocity.invertInDirection(d);
+		e.velocity.invertInDirection(d);
 
 		switch (d) {
 		case LEFT: {

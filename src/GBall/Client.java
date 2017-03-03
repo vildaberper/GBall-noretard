@@ -13,25 +13,27 @@ import GBall.engine.Vector2.Direction;
 import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
 import GBall.engine.event.OffsetEvent;
+import GBall.network.Ack;
+import GBall.network.Connection;
+import GBall.network.Connection.ConnectionListener;
+import GBall.network.Handshake;
 import GBall.network.Location;
 import GBall.network.Packet;
 import GBall.network.SocketListener;
-import GBall.network.TCPSocket;
 import GBall.network.UDPSocket;
 
 import static GBall.engine.Util.*;
 
-public class Client implements SocketListener, ControllerListener, GameListener {
+public class Client implements SocketListener, ControllerListener, GameListener, ConnectionListener {
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
 		Client c = new Client();
 		c.run();
 	}
+	
+	private final Connection connection;
 
-	//private final TCPSocket socket;
-	private final UDPSocket socket;
-
-	private final Location server = new Location("193.11.162.104", 25565);
+	private final Location server = new Location("193.11.163.224", 25565);
 	//private final Location server = new Location("localhost", 25565);
 
 	private long id = -1;
@@ -44,8 +46,7 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 	private final GameWindow gw;
 
 	public Client() throws UnknownHostException, IOException {
-		//socket = new TCPSocket(server);
-		socket = new UDPSocket();
+		connection = new Connection(server, new UDPSocket(), this);
 		game = new Game(this);
 		gw = new GameWindow(game);
 	}
@@ -54,7 +55,7 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 		Controller c = new Controller(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN, this);
 
 		game.reset();
-		socket.open(this);
+		connection.open(this);
 		gw.addKeyListener(c);
 		while (true) {
 			if (!initialOffset) {
@@ -77,20 +78,38 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 
 	@Override
 	public void onReceive(Location source, Packet packet) {
+		if (packet.getObject() instanceof Ack) {
+			Ack ack = (Ack) packet.getObject();
+			connection.addAck(ack.id);
+			return;
+		}
+		
+		connection.sendAck(packet.id);
+		
+		if (connection.handled(packet.id))
+			return;
+		
+		connection.addHandled(packet.id);
+		
 		Object obj = packet.getObject();
 
-		if (obj instanceof Long) {
-			if (startTime == -1) {
-				startTime = (Long) obj;
-				System.out.println("startTime=" + startTime);
-			} else if (id == -1) {
-				id = (Long) obj;
-				System.out.println("id=" + id);
-			} else {
-				Time.setOffset(startTime + ((Long) obj) * Const.FRAME_INCREMENT - Time.getTime());
-				System.out.println("initialOffset=" + Time.getOffset());
-				initialOffset = true;
-			}
+		if (obj instanceof Handshake) {
+			Handshake handshake = (Handshake) obj;
+			
+			startTime = handshake.startTime;
+			System.out.println("startTime=" + handshake.startTime);
+			
+			id = handshake.clientId;
+			System.out.println("id=" + id);
+			
+			Time.setOffset(startTime + handshake.frame * Const.FRAME_INCREMENT - Time.getTime());
+			System.out.println("initialOffset=" + Time.getOffset() + " - packet id: " + packet.id);
+			initialOffset = true;
+			
+			Event e = handshake.stateEvent;
+
+			handleEvent(e);
+			
 		} else if (obj instanceof Event) {
 			if (obj instanceof OffsetEvent) {
 				long deltaOffset = ((OffsetEvent) obj).offset - Const.LOCAL_DELAY;
@@ -98,13 +117,17 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 			} else {
 				Event e = (Event) obj;
 
-				long diff = startTime + (e.frame - Const.LOCAL_DELAY) * Const.FRAME_INCREMENT - Time.getTime();
-				if (diff > 0)
-					Time.setOffset(Time.getOffset() + minmax(diff, 5L));
-
-				game.pushEvent(e);
+				handleEvent(e);
 			}
-		}
+		}		
+	}
+	
+	private void handleEvent(Event e) {
+		long diff = startTime + (e.frame - Const.LOCAL_DELAY) * Const.FRAME_INCREMENT - Time.getTime();
+		if (diff > 0)
+			Time.setOffset(Time.getOffset() + minmax(diff, 5L));
+
+		game.pushEvent(e);
 	}
 
 	private void localEvent(Direction d, boolean press) {
@@ -112,8 +135,7 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 		synchronized (game) {
 			event = new ControllerEvent(game.getFrame() + Const.LOCAL_DELAY, id, d, press);
 		}
-		//socket.send(new Packet(event));
-		socket.send(server, new Packet(event));
+		connection.send(new Packet(event));
 		game.pushEvent(event);
 	}
 
@@ -135,6 +157,12 @@ public class Client implements SocketListener, ControllerListener, GameListener 
 	@Override
 	public void onInvalidInput() {
 		System.out.println("!!! invalid input !!!");
+	}
+
+	@Override
+	public void onConnect(Connection c) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
