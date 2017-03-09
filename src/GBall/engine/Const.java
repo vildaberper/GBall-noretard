@@ -29,6 +29,7 @@ public final class Const {
 	public final static Vector2 TEAM1_SCORE_TEXT_POSITION = new Vector2((double) (DISPLAY_WIDTH / 2) - 120, 52.0);
 	public final static Vector2 TEAM2_SCORE_TEXT_POSITION = new Vector2((double) (DISPLAY_WIDTH / 2) + 120, 52.0);
 	public final static Font SCORE_FONT = new Font("Times New Roman", Font.BOLD, FONT_SIZE);
+
 	public final static int GOAL_WIDTH = 15;
 	public final static int TEAM1_GOAL_POSITION = 0;
 	public final static int TEAM2_GOAL_POSITION = DISPLAY_WIDTH - GOAL_WIDTH;
@@ -52,20 +53,17 @@ public final class Const {
 	public final static int SHIP_RADIUS = 22;
 	public final static double SHIP_MAX_ACCELERATION = 400.0;
 	public final static double SHIP_MAX_SPEED = 370.0;
-	public final static double SHIP_BRAKE_SCALE = 0.978; // Scale speed by this
-															// factor
-	// (per frame) when braking
-	public final static double SHIP_TURN_BRAKE_SCALE = 0.99; // Scale speed by
-																// this
-	// factor (per frame)
-	// when turning
-	public final static double SHIP_FRICTION = 0.99; // Scale speed by this
-														// factor (per
-	// frame) when not accelerating
-	public final static double SHIP_ROTATION = 0.067 * 50.0; // Rotate ship by
-																// this many
-	// radians (per frame) when
-	// turning
+	public final static double SHIP_BRAKE_SCALE = 0.978;
+	// Scale speed by this factor (per frame) when braking
+
+	public final static double SHIP_TURN_BRAKE_SCALE = 0.99;
+	// Scale speed by this factor (per frame) when turning
+
+	public final static double SHIP_FRICTION = 0.99;
+	// Scale speed by this factor (per frame) when not accelerating
+
+	public final static double SHIP_ROTATION = 0.067 * 50.0;
+	// Rotate ship by this many radians (per frame) when turning
 
 	// Ball-related constants
 	public final static int BALL_RADIUS = 18;

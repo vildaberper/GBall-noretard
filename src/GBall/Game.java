@@ -24,6 +24,8 @@ import GBall.engine.event.AddEntityEvent;
 import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
 import GBall.engine.event.GoalEvent;
+import GBall.engine.event.RemoveEntityEvent;
+import GBall.engine.event.ResetGoalsEvent;
 import GBall.engine.event.StateEvent;
 
 public class Game implements WorldListener, GameWindowListener, StateListener {
@@ -34,6 +36,9 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 		void onTimewarp(long offset, long entityId);
 
 		void onInvalidInput();
+
+		void onExit();
+
 	}
 
 	public boolean debug = false;
@@ -72,6 +77,10 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 	public long getFrame() {
 		return frame;
+	}
+
+	public void setFrame(long frame) {
+		this.frame = frame;
 	}
 
 	public void saveState() {
@@ -125,6 +134,10 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 	public void addEntity(Entity... e) {
 		world.addEntity(e);
+	}
+
+	public void removeEntity(Long... id) {
+		world.removeEntity(id);
 	}
 
 	public Ship getShip(long id) {
@@ -204,6 +217,8 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 	@Override
 	public void onWallCollide(Entity e, Direction d, double dist) {
+		// if (!(e instanceof Ball))
+		// Would fire several goal events in the event of exception etc.
 		e.velocity.invertInDirection(d);
 
 		switch (d) {
@@ -260,11 +275,6 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 		gw.drawString(Integer.toString(scoreGreen), Const.TEAM2_SCORE_TEXT_POSITION);
 
 		if (debug) {
-			if (Const.SHOW_FPS) {
-				gw.setColor(Const.FPS_TEXT_COLOR);
-				// gw.drawString(Integer.toString((int) world.fps()),
-				// Const.FPS_TEXT_POSITION);
-			}
 			gw.setColor(Color.WHITE);
 			gw.setFont_(new Font("Arial", Font.BOLD, 12));
 			String[] ss = stateManager.toString().split("\n");
@@ -274,7 +284,6 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 				gw.drawString(s, p);
 				p.y += 13;
 			}
-
 			gw.drawString(Long.toString(getFrame()), new Vector2(500, 50));
 			gw.drawString(Long.toString(Time.getOffset()), new Vector2(500, 70));
 		}
@@ -350,6 +359,12 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 			AddEntityEvent aee = (AddEntityEvent) event;
 
 			world.addEntity(aee.entity.clone());
+		} else if (event instanceof RemoveEntityEvent) {
+			RemoveEntityEvent ree = (RemoveEntityEvent) event;
+
+			world.removeEntity(ree.entityId);
+		} else if (event instanceof ResetGoalsEvent) {
+			scoreRed = scoreGreen = 0;
 		} else if (event instanceof StateEvent) {
 			if (eventQueueFrame.size() > 0) {
 				eventQueueFrame.add(event);
@@ -360,6 +375,11 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 			setState(se.state);
 		}
+	}
+
+	@Override
+	public void onClose() {
+		listener.onExit();
 	}
 
 }

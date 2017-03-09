@@ -5,8 +5,8 @@ public class OffsetEvent extends Event {
 
 	public final long offset;
 
-	public OffsetEvent(long framestamp, long offset) {
-		super(framestamp);
+	public OffsetEvent(long offset) {
+		super(0);
 		this.offset = offset;
 	}
 

@@ -2,18 +2,21 @@ package GBall.engine;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-public class GameWindow extends Frame implements WindowListener {
+import javax.swing.JFrame;
+
+public class GameWindow extends JFrame implements WindowListener {
 	private static final long serialVersionUID = -6791313761602059823L;
 
 	public interface GameWindowListener {
 
 		public void render(GameWindow gw);
+
+		public void onClose();
 
 	}
 
@@ -26,13 +29,19 @@ public class GameWindow extends Frame implements WindowListener {
 
 	private final GameWindowListener listener;
 
-	public GameWindow(GameWindowListener listener) {
+	public GameWindow(GameWindowListener listener, String titleSuffix) {
 		this.listener = listener;
 		addWindowListener(this);
 
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
 		setSize(Const.DISPLAY_WIDTH, Const.DISPLAY_HEIGHT);
-		setTitle(Const.APP_NAME);
+		setTitle(Const.APP_NAME + (titleSuffix != null ? " " + titleSuffix : ""));
 		setVisible(true);
+	}
+
+	public GameWindow(GameWindowListener listener) {
+		this(listener, null);
 	}
 
 	public void setColor(Color color) {
@@ -61,7 +70,7 @@ public class GameWindow extends Frame implements WindowListener {
 	}
 
 	@Override
-	public void update(Graphics g) {
+	public void repaint() {
 		if (offScreenGraphicsCtx == null) {
 			offScreenImage = createImage(getSize().width, getSize().height);
 			offScreenGraphicsCtx = offScreenImage.getGraphics();
@@ -73,13 +82,14 @@ public class GameWindow extends Frame implements WindowListener {
 		listener.render(this);
 
 		// Draw the scene onto the screen
-		if (offScreenImage != null) {
-			g.drawImage(offScreenImage, 0, 0, this);
+		if (offScreenImage != null && getGraphics() != null) {
+			getGraphics().drawImage(offScreenImage, 0, 0, this);
 		}
 	}
 
 	@Override
-	public void paint(Graphics g) {
+	public void windowClosing(WindowEvent e) {
+		listener.onClose();
 	}
 
 	@Override
@@ -88,11 +98,6 @@ public class GameWindow extends Frame implements WindowListener {
 
 	@Override
 	public void windowClosed(WindowEvent e) {
-	}
-
-	@Override
-	public void windowClosing(WindowEvent e) {
-		System.exit(0);
 	}
 
 	@Override

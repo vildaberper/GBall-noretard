@@ -47,6 +47,11 @@ public class World {
 			state.entities.put(e_.id, e_);
 	}
 
+	public void removeEntity(Long... id) {
+		for (long l : id)
+			state.entities.entrySet().removeIf(e -> e.getKey().equals(l));
+	}
+
 	public Entity getEntity(long id) {
 		return state.entities.get(id);
 	}

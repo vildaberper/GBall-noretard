@@ -5,26 +5,23 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 
-public class UDPSocket {
+public class Socket {
+
+	public interface SocketListener {
+
+		public void onReceive(Location source, Packet packet);
+
+	}
 
 	private final DatagramSocket socket;
-	private Thread receiveThread;
+	private Thread receiveThread = null;
 
-	public UDPSocket() throws SocketException {
+	public Socket() throws SocketException {
 		socket = new DatagramSocket();
 	}
 
-	public UDPSocket(int port) throws SocketException {
+	public Socket(int port) throws SocketException {
 		socket = new DatagramSocket(port);
-	}
-
-	public void send(Location target, Packet packet) {
-		try {
-			socket.send(packet.toDatagramPacket(target));
-		} catch (IOException e) {
-			e.printStackTrace();
-			socket.close();
-		}
 	}
 
 	public void open(final SocketListener listener) {
@@ -38,7 +35,8 @@ public class UDPSocket {
 					try {
 						socket.receive(datagramPacket);
 					} catch (IOException e) {
-						e.printStackTrace();
+						close();
+						return;
 					}
 					listener.onReceive(new Location(datagramPacket.getAddress(), datagramPacket.getPort()),
 							new Packet(datagramPacket));
@@ -56,6 +54,15 @@ public class UDPSocket {
 
 	public boolean isOpen() {
 		return !socket.isClosed();
+	}
+
+	public void send(Location target, Packet packet) {
+		try {
+			socket.send(packet.toDatagramPacket(target));
+		} catch (IOException e) {
+			e.printStackTrace();
+			close();
+		}
 	}
 
 }

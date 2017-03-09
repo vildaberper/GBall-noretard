@@ -1,9 +1,9 @@
 package GBall;
 
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.net.SocketException;
 
 import GBall.Game.GameListener;
 import GBall.engine.Const;
@@ -11,65 +11,92 @@ import GBall.engine.GameWindow;
 import GBall.engine.Ship;
 import GBall.engine.Time;
 import GBall.engine.event.AddEntityEvent;
+import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
 import GBall.engine.event.GoalEvent;
 import GBall.engine.event.OffsetEvent;
+import GBall.engine.event.RemoveEntityEvent;
+import GBall.engine.event.ResetGoalsEvent;
 import GBall.engine.event.StateEvent;
-import GBall.network.Ack;
-import GBall.network.Connection;
-import GBall.network.Connection.ConnectionListener;
-import GBall.network.Handshake;
-import GBall.network.Location;
-import GBall.network.Packet;
-import GBall.network.SocketListener;
-import GBall.network.UDPSocket;
+import GBall.network.ServerClient;
+import GBall.network.ServerConnection;
+import GBall.network.ServerConnection.ServerConnectionListener;
 
 import static GBall.engine.Util.*;
 
-public class Server implements ConnectionListener, SocketListener, GameListener {
+public class Server implements GameListener, ServerConnectionListener<Server.Client> {
 
 	public static void main(String[] args) throws IOException {
 		Server s = new Server();
 		s.run();
 	}
 
-	
-	private Map<Location, Connection> connections = new ConcurrentHashMap<Location, Connection>();
+	protected class Client {
 
-	private final UDPSocket socket;
+		public long id = -1;
+
+		public Client(long id) {
+			this.id = id;
+		}
+
+	}
+
+	private ServerConnection<Server.Client> serverConnection;
 
 	private long startTime;
 
 	private final Game game;
 	private final GameWindow gw;
 
-	public Server() throws IOException {
-		socket = new UDPSocket(25565);
+	public Server() {
 		game = new Game(this);
-		gw = new GameWindow(game);
+		gw = new GameWindow(game, "- SERVER ");
 	}
 
-	private Connection getConnection(long id) {
-		for (Connection c : connections.values())
-			if (c.clientId == id)
-				return c;
-		return null;
+	private ServerClient<Server.Client> getClient(long id) {
+		return serverConnection.getClient(new Client(id));
 	}
 
-	public void run() {
-		socket.open(this);
+	public void run() throws SocketException {
+		serverConnection = new ServerConnection<Server.Client>(25565, this);
 
 		game.reset();
 		game.saveState();
 
 		startTime = Time.getTime();
 		System.out.println("startTime=" + startTime);
+
+		gw.addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyPressed(KeyEvent arg0) {
+				if (arg0.getKeyCode() == KeyEvent.VK_D) {
+					synchronized (game) {
+						game.debug = !game.debug;
+					}
+				}
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+		});
+
 		while (true) {
 			synchronized (game) {
 				game.tick();
 
-				// if (game.getFrame() % Const.PERIODIC_STATES == 0L)
-				// broadcast(new StateEvent(game.getState()));
+				if (game.getFrame() % Const.PERIODIC_STATES == 0L)
+					serverConnection.broadcast(new StateEvent(game.getState()));
 
 				gw.repaint();
 			}
@@ -80,64 +107,58 @@ public class Server implements ConnectionListener, SocketListener, GameListener 
 				sleep(timeToSleep);
 		}
 	}
-	
-	private void broadcast(Serializable s, Connection... except) {
-		connections.entrySet().forEach(e -> {
-			for (Connection c : except)
-				if (e.getValue().equals(c))
-					return;
-			
-			e.getValue().send(new Packet(s));
-		});
-	}
-	
-	@Override
-	public void onReceive(Location source, Packet packet) {
-		Connection connection = connections.get(source);
-		
-		if (connection == null) {
-			new Connection(source, socket, this).connect();
-			return;
-		}
-		if (packet.getObject() instanceof Ack) {
-			Ack ack = (Ack) packet.getObject();
-			connection.addAck(ack.id);
-			return;
-		}
-		connection.sendAck(packet.id);
-		
-		if (connection.handled(packet.id))
-			return;
-		
-		connection.addHandled(packet.id);		
-		
-		if (packet.getObject() instanceof Long)
-			return;
-		
-		Event event = (Event) packet.getObject();		
-		/*
-		 * TODO validate ControllerEvent and entity id.
-		 */
 
-		broadcast(event, connection);
+	@Override
+	public void onConnect(ServerClient<Server.Client> client) {
+		AddEntityEvent aee = null;
+		StateEvent gse;
+		Ship ship;
+		long id = -1;
+
+		synchronized (game) {
+			if ((ship = game.nextShip()) != null) {
+				aee = new AddEntityEvent(game.getFrame() + 1, ship.clone());
+				id = ship.id;
+			}
+			gse = new StateEvent(game.getState());
+		}
+		client.setData(new Client(id));
+		client.send(new Handshake(startTime, id, gse));
+		if (aee != null) {
+			serverConnection.broadcast(aee);
+			game.pushEvent(aee);
+		}
+	}
+
+	@Override
+	public void onReceive(ServerClient<Server.Client> client, Object o) {
+		if (!(o instanceof Event))
+			return;
+
+		Event event = (Event) o;
+
+		if (!(event instanceof ControllerEvent && ((ControllerEvent) event).entityId == client.getData().id))
+			return;
+
+		serverConnection.broadcast(event, client);
 		game.pushEvent(event);
-	}	
+	}
 
 	@Override
 	public void onGoal(boolean red) {
 		GoalEvent event = new GoalEvent(game.getFrame(), red);
 
-		broadcast(event);
+		serverConnection.broadcast(event);
 		game.pushEvent(event);
 	}
 
 	@Override
 	public void onTimewarp(long offset, long entityId) {
-		Connection c = getConnection(entityId);		
+		ServerClient<Server.Client> client = getClient(entityId);
 
 		++offset;
-		if (c != null)
-			c.send(new Packet(new OffsetEvent(0, offset)));
+		if (client != null)
+			client.send(new OffsetEvent(offset));
 	}
 
 	@Override
@@ -146,26 +167,22 @@ public class Server implements ConnectionListener, SocketListener, GameListener 
 	}
 
 	@Override
-	public void onConnect(Connection c) {		
-		connections.put(c.location, c);
-		
-		AddEntityEvent aee;
-		StateEvent gse;
-		Ship ship;
-		synchronized (game) {
-			if ((ship = game.nextShip()) == null) {
-				c.close();
-				connections.remove(c.location);
-				return;
-			}
-			gse = new StateEvent(game.getState());
-			aee = new AddEntityEvent(game.getFrame() + 1, ship.clone());
-		}
-		c.clientId = ship.id;
-		game.pushEvent(aee);
-		c.send(new Packet(new Handshake(startTime, c.clientId, gse.frame, gse)));
-		
-		broadcast(aee);		
+	public void onDisconnect(ServerClient<Client> client) {
+		if (client.getData().id == -1)
+			return;
+
+		RemoveEntityEvent event = new RemoveEntityEvent(game.getFrame() + 1, client.getData().id);
+
+		serverConnection.broadcast(event);
+		game.pushEvent(event);
+
+		if (serverConnection.isEmpty())
+			game.pushEvent(new ResetGoalsEvent(game.getFrame() + 1));
+	}
+
+	@Override
+	public void onExit() {
+		serverConnection.forEachClient(e -> e.connection.close());
 	}
 
 }

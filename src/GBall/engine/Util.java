@@ -4,6 +4,10 @@ import java.util.HashMap;
 
 public class Util {
 
+	public static long millis() {
+		return System.currentTimeMillis();
+	}
+
 	public static boolean sleep(long millis) {
 		try {
 			Thread.sleep(millis);

@@ -5,7 +5,7 @@ public final class Time {
 	private static long offset = 0;
 
 	public static long getTime() {
-		return System.currentTimeMillis() + offset;
+		return Util.millis() + offset;
 	}
 
 	public static long getOffset() {

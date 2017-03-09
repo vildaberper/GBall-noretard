@@ -22,10 +22,7 @@ public class Location {
 		String s = ip.toString();
 		int i = s.indexOf('/');
 
-		if (i != -1)
-			s = s.substring(i + 1);
-
-		return s + ":" + port;
+		return (i == -1 ? s : s.substring(i + 1)) + ":" + port;
 	}
 
 	@Override
