@@ -36,6 +36,8 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 		void onInvalidInput();
 	}
 
+	public boolean debug = false;
+
 	private final World world;
 	private final StateManager stateManager;
 
@@ -257,23 +259,25 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 		gw.setColor(Const.TEAM2_COLOR);
 		gw.drawString(Integer.toString(scoreGreen), Const.TEAM2_SCORE_TEXT_POSITION);
 
-		if (Const.SHOW_FPS) {
-			gw.setColor(Const.FPS_TEXT_COLOR);
-			// gw.drawString(Integer.toString((int) world.fps()),
-			// Const.FPS_TEXT_POSITION);
-		}
-		gw.setColor(Color.WHITE);
-		gw.setFont_(new Font("Arial", Font.BOLD, 12));
-		String[] ss = stateManager.toString().split("\n");
-		Vector2 p = new Vector2(10, 50);
+		if (debug) {
+			if (Const.SHOW_FPS) {
+				gw.setColor(Const.FPS_TEXT_COLOR);
+				// gw.drawString(Integer.toString((int) world.fps()),
+				// Const.FPS_TEXT_POSITION);
+			}
+			gw.setColor(Color.WHITE);
+			gw.setFont_(new Font("Arial", Font.BOLD, 12));
+			String[] ss = stateManager.toString().split("\n");
+			Vector2 p = new Vector2(10, 50);
 
-		for (String s : ss) {
-			gw.drawString(s, p);
-			p.y += 13;
-		}
+			for (String s : ss) {
+				gw.drawString(s, p);
+				p.y += 13;
+			}
 
-		gw.drawString(Long.toString(getFrame()), new Vector2(500, 50));
-		gw.drawString(Long.toString(Time.getOffset()), new Vector2(500, 70));
+			gw.drawString(Long.toString(getFrame()), new Vector2(500, 50));
+			gw.drawString(Long.toString(Time.getOffset()), new Vector2(500, 70));
+		}
 
 	}
 

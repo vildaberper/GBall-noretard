@@ -1,6 +1,7 @@
 package GBall;
 
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
@@ -57,6 +58,29 @@ public class Client implements SocketListener, ControllerListener, GameListener,
 		game.reset();
 		connection.open(this);
 		gw.addKeyListener(c);
+
+		gw.addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyPressed(KeyEvent arg0) {
+				if (arg0.getKeyCode() == KeyEvent.VK_D)
+					game.debug = !game.debug;
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+		});
+
 		while (true) {
 			if (!initialOffset) {
 				gw.repaint();
