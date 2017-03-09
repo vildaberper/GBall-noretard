@@ -98,16 +98,6 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 			s1.acceleration = 0.0;
 			world.addEntity(s1);
 			return s1;
-		} else if (world.getEntity(2L) == null) {
-			Ship s2 = new Ship(2L, Color.RED);
-			s2 = new Ship(2L, Color.RED);
-			s2.direction.set(1, 0);
-			s2.position.x = Const.START_TEAM1_SHIP2_X;
-			s2.position.y = Const.START_TEAM1_SHIP2_Y;
-			s2.velocity.zero();
-			s2.acceleration = 0.0;
-			world.addEntity(s2);
-			return s2;
 		} else if (world.getEntity(3L) == null) {
 			Ship s3 = new Ship(3L, Color.GREEN);
 			s3 = new Ship(3L, Color.GREEN);
@@ -118,6 +108,16 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 			s3.acceleration = 0.0;
 			world.addEntity(s3);
 			return s3;
+		} else if (world.getEntity(2L) == null) {
+			Ship s2 = new Ship(2L, Color.RED);
+			s2 = new Ship(2L, Color.RED);
+			s2.direction.set(1, 0);
+			s2.position.x = Const.START_TEAM1_SHIP2_X;
+			s2.position.y = Const.START_TEAM1_SHIP2_Y;
+			s2.velocity.zero();
+			s2.acceleration = 0.0;
+			world.addEntity(s2);
+			return s2;
 		} else if (world.getEntity(4L) == null) {
 			Ship s4 = new Ship(4L, Color.GREEN);
 			s4 = new Ship(4L, Color.GREEN);
