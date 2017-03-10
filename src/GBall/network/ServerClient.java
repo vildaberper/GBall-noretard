@@ -23,4 +23,9 @@ public class ServerClient<T> {
 		this.data = data;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		return o instanceof ServerClient<?> && ((ServerClient<?>) o).connection.location.equals(connection.location);
+	}
+
 }
