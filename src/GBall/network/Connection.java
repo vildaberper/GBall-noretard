@@ -57,7 +57,7 @@ public class Connection implements SocketListener {
 				while (open.get())
 					if (!sendBuffer.isEmpty()) {
 						sendBuffer.entrySet().forEach(e -> send(e.getValue()));
-						Util.sleep(50);
+						Util.sleep(75);
 					} else
 						Util.sleep(Long.MAX_VALUE);
 			}
@@ -67,7 +67,7 @@ public class Connection implements SocketListener {
 			public void run() {
 				while (open.get()) {
 					sendPing();
-					Util.sleep(50);
+					Util.sleep(250);
 					if (!isConnected()) {
 						close();
 						listener.onDisconnect(instance);
@@ -90,7 +90,7 @@ public class Connection implements SocketListener {
 
 	private boolean isConnected() {
 		synchronized (lastReceived) {
-			return lastReceived.getValue() != -1 && Util.millis() - lastReceived.getValue() < 1000L;
+			return lastReceived.getValue() != -1 && Util.millis() - lastReceived.getValue() < 5000L;
 		}
 	}
 

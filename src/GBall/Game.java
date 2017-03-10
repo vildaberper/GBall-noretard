@@ -366,16 +366,20 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 		} else if (event instanceof ResetGoalsEvent) {
 			scoreRed = scoreGreen = 0;
 		} else if (event instanceof StateEvent) {
-			if (eventQueueFrame.size() > 0) {
-				eventQueueFrame.add(event);
-				return;
+			if(bajs){
+				if (eventQueueFrame.size() > 0) {
+					eventQueueFrame.add(event);
+					return;
+				}
+	
+				StateEvent se = (StateEvent) event;
+	
+				setState(se.state);
+				bajs = false;
 			}
-
-			StateEvent se = (StateEvent) event;
-
-			setState(se.state);
 		}
 	}
+	private boolean bajs = true;
 
 	@Override
 	public void onClose() {

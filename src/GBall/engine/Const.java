@@ -16,9 +16,9 @@ public final class Const {
 	public final static String APP_NAME = "Rocket League för hemmafruar";
 	public final static int DISPLAY_WIDTH = 1024;
 	public final static int DISPLAY_HEIGHT = 758;
-	public final static int WINDOW_TOP_HEIGHT = 30;
-	public final static int WINDOW_BORDER_WIDTH = 5;
-	public final static int WINDOW_BOTTOM_HEIGHT = 5;
+	public final static int WINDOW_TOP_HEIGHT = 0;
+	public final static int WINDOW_BORDER_WIDTH = 0;
+	public final static int WINDOW_BOTTOM_HEIGHT = 0;
 	public final static Color BG_COLOR = Color.BLACK;
 	public final static int FONT_SIZE = 24;
 

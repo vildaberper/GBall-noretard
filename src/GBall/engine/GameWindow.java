@@ -1,16 +1,19 @@
 package GBall.engine;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 
-public class GameWindow extends JFrame implements WindowListener {
-	private static final long serialVersionUID = -6791313761602059823L;
+public class GameWindow implements WindowListener {
 
 	public interface GameWindowListener {
 
@@ -20,24 +23,43 @@ public class GameWindow extends JFrame implements WindowListener {
 
 	}
 
-	// private Image background;
-	private Image offScreenImage;
-	private Graphics offScreenGraphicsCtx; // Used for double buffering
+	private class Panel extends JPanel {
+		private static final long serialVersionUID = -1946087136085511129L;
+
+		@Override
+		public void paintComponent(Graphics g) {
+			graphics = g;
+			setColor(Const.BG_COLOR);
+			fillRect(0, 0, Const.DISPLAY_WIDTH, Const.DISPLAY_HEIGHT);
+			listener.render(instance);
+		}
+	}
+
+	private final JFrame frame;
+	private final Panel panel;
+	private Graphics graphics;
 
 	// private final static int YOFFSET = 34;
 	// private final static int XOFFSET = 4;
 
 	private final GameWindowListener listener;
 
+	private final GameWindow instance = this;
+
 	public GameWindow(GameWindowListener listener, String titleSuffix) {
 		this.listener = listener;
-		addWindowListener(this);
 
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		panel = new Panel();
+		frame = new JFrame(Const.APP_NAME + (titleSuffix != null ? " " + titleSuffix : ""));
+		frame.addWindowListener(this);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		panel.setPreferredSize(new Dimension(Const.DISPLAY_WIDTH, Const.DISPLAY_HEIGHT));
+		frame.add(panel);
+		
+		frame.pack();
 
-		setSize(Const.DISPLAY_WIDTH, Const.DISPLAY_HEIGHT);
-		setTitle(Const.APP_NAME + (titleSuffix != null ? " " + titleSuffix : ""));
-		setVisible(true);
+		frame.setVisible(true);
 	}
 
 	public GameWindow(GameWindowListener listener) {
@@ -45,46 +67,36 @@ public class GameWindow extends JFrame implements WindowListener {
 	}
 
 	public void setColor(Color color) {
-		offScreenGraphicsCtx.setColor(color);
+		graphics.setColor(color);
 	}
 
 	public void setFont_(Font font) {
-		offScreenGraphicsCtx.setFont(font);
+		graphics.setFont(font);
 	}
 
 	public void drawString(String string, Vector2 position) {
-		offScreenGraphicsCtx.drawString(string, (int) position.x, (int) position.y);
+		graphics.drawString(string, (int) position.x, (int) position.y);
 	}
 
 	public void drawCircle(Vector2 position, int radius) {
-		offScreenGraphicsCtx.drawOval((int) position.x - radius, (int) position.y - radius, radius * 2, radius * 2);
+		graphics.drawOval((int) position.x - radius, (int) position.y - radius, radius * 2, radius * 2);
 	}
 
 	public void drawLine(Vector2 position, double angle, int length) {
-		offScreenGraphicsCtx.drawLine((int) position.x, (int) position.y, (int) (position.x + Math.cos(angle) * length),
+		graphics.drawLine((int) position.x, (int) position.y, (int) (position.x + Math.cos(angle) * length),
 				(int) (position.y + Math.sin(angle) * length));
 	}
 
 	public void fillRect(int x, int y, int width, int height) {
-		offScreenGraphicsCtx.fillRect(x, y, width, height);
+		graphics.fillRect(x, y, width, height);
 	}
 
-	@Override
 	public void repaint() {
-		if (offScreenGraphicsCtx == null) {
-			offScreenImage = createImage(getSize().width, getSize().height);
-			offScreenGraphicsCtx = offScreenImage.getGraphics();
-		}
+		panel.repaint();
+	}
 
-		setColor(Const.BG_COLOR);
-		offScreenGraphicsCtx.fillRect(0, 0, getSize().width, getSize().height);
-
-		listener.render(this);
-
-		// Draw the scene onto the screen
-		if (offScreenImage != null && getGraphics() != null) {
-			getGraphics().drawImage(offScreenImage, 0, 0, this);
-		}
+	public void addKeyListener(KeyListener keyListener) {
+		frame.addKeyListener(keyListener);
 	}
 
 	@Override

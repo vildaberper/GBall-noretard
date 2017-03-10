@@ -30,7 +30,7 @@ public class Client implements ClientConnectionListener, ControllerListener, Gam
 		c.run();
 	}
 
-	private ClientConnection clientConnection;
+	private ClientConnection clientConnection = null;
 
 	private final Location server = new Location("tfbs.no-ip.org", 25565);
 	// private final Location server = new Location("localhost", 25565);
@@ -53,8 +53,6 @@ public class Client implements ClientConnectionListener, ControllerListener, Gam
 	}
 
 	public void run() throws SocketException {
-		clientConnection = new ClientConnection(server, this);
-
 		Controller c = new Controller(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN, this);
 
 		game.reset();
@@ -86,6 +84,8 @@ public class Client implements ClientConnectionListener, ControllerListener, Gam
 		while (true) {
 			if (!doneHandshake) {
 				gw.repaint();
+				if (clientConnection == null)
+					clientConnection = new ClientConnection(server, this);
 				sleep(Const.FRAME_INCREMENT);
 				continue;
 			}
