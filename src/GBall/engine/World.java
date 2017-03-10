@@ -68,16 +68,16 @@ public class World {
 	private void checkWallCollision(Entity e) {
 		double d;
 
-		if ((d = interv(e.position.x, Const.WINDOW_BORDER_WIDTH)) < e.radius())
+		if ((d = interv(e.position.x, 0)) < e.radius())
 			checkWallCollision_helper(e, Direction.LEFT, d);
 
-		if ((d = interv(e.position.x, Const.DISPLAY_WIDTH - Const.WINDOW_BORDER_WIDTH)) < e.radius())
+		if ((d = interv(e.position.x, Const.DISPLAY_WIDTH)) < e.radius())
 			checkWallCollision_helper(e, Direction.RIGHT, d);
 
-		if ((d = interv(e.position.y, Const.WINDOW_TOP_HEIGHT)) < e.radius())
+		if ((d = interv(e.position.y, 0)) < e.radius())
 			checkWallCollision_helper(e, Direction.UP, d);
 
-		if ((d = interv(e.position.y, Const.DISPLAY_HEIGHT - Const.WINDOW_BOTTOM_HEIGHT)) < e.radius())
+		if ((d = interv(e.position.y, Const.DISPLAY_HEIGHT)) < e.radius())
 			checkWallCollision_helper(e, Direction.DOWN, d);
 	}
 

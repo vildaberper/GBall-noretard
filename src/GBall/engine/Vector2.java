@@ -39,6 +39,10 @@ public class Vector2 implements Serializable {
 		this(0.0, 0.0);
 	}
 
+	public Vector2(Vector2 v) {
+		this(v.x, v.y);
+	}
+
 	public boolean isMovingInDirection(Direction d) {
 		switch (d) {
 		default:
@@ -134,7 +138,7 @@ public class Vector2 implements Serializable {
 
 	@Override
 	public Vector2 clone() {
-		return new Vector2(x, y);
+		return new Vector2(this);
 	}
 
 }

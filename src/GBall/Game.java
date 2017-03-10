@@ -1,7 +1,6 @@
 package GBall;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -262,39 +261,37 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 
 	@Override
 	public void render(GameWindow gw) {
-		gw.setColor(Const.TEAM1_COLOR);
-		gw.fillRect(Const.TEAM1_GOAL_POSITION, 0, Const.GOAL_WIDTH, Const.DISPLAY_HEIGHT);
-		gw.setColor(Const.TEAM2_COLOR);
-		gw.fillRect(Const.TEAM2_GOAL_POSITION, 0, Const.GOAL_WIDTH, Const.DISPLAY_HEIGHT);
-		world.render(gw);
-
 		gw.setFont_(Const.SCORE_FONT);
 		gw.setColor(Const.TEAM1_COLOR);
 		gw.drawString(Integer.toString(scoreRed), Const.TEAM1_SCORE_TEXT_POSITION);
+		gw.fillRect(Const.TEAM1_GOAL_POSITION, 0, Const.GOAL_WIDTH, Const.DISPLAY_HEIGHT);
+
 		gw.setColor(Const.TEAM2_COLOR);
 		gw.drawString(Integer.toString(scoreGreen), Const.TEAM2_SCORE_TEXT_POSITION);
+		gw.fillRect(Const.TEAM2_GOAL_POSITION, 0, Const.GOAL_WIDTH, Const.DISPLAY_HEIGHT);
+		world.render(gw);
 
 		if (debug) {
 			gw.setColor(Color.WHITE);
-			gw.setFont_(new Font("Arial", Font.BOLD, 12));
+			gw.setFont_(Const.DEBUG_FONT);
 			String[] ss = stateManager.toString().split("\n");
-			Vector2 p = new Vector2(10, 50);
+			Vector2 p = Const.DEBUG_TEXT_POSITION.clone();
 
 			for (String s : ss) {
 				gw.drawString(s, p);
 				p.y += 13;
 			}
-			gw.drawString(Long.toString(getFrame()), new Vector2(500, 50));
-			gw.drawString(Long.toString(Time.getOffset()), new Vector2(500, 70));
+			gw.drawString(Long.toString(getFrame()), new Vector2(500, 20));
+			gw.drawString(Long.toString(Time.getOffset()), new Vector2(500, 35));
 		}
-
 	}
 
 	@Override
 	public void onTimewarp(GameState state, Event source) {
 		listener.onTimewarp((frame - source.frame) * Const.FRAME_INCREMENT, source.getEntityId());
 
-		System.out.println("timewarp to frame " + state.frame + " from " + frame);
+		System.out.println(
+				"timewarp to frame " + state.frame + " from " + frame + " (" + (frame - state.frame) + " frames)");
 		System.out.println("source " + source.toString());
 
 		long currentFrame = getFrame();
@@ -326,7 +323,7 @@ public class Game implements WorldListener, GameWindowListener, StateListener {
 	}
 
 	public void onEvent(Event event) {
-		System.out.println("  event(" + getFrame() + "):" + event.toString());
+		// System.out.println("event(" + getFrame() + "):" + event.toString());
 
 		if (event instanceof ControllerEvent) {
 			ControllerEvent ce = (ControllerEvent) event;

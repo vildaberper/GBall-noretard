@@ -68,10 +68,8 @@ public class Connection implements SocketListener {
 				while (open.get()) {
 					sendPing();
 					Util.sleep(250);
-					if (!isConnected()) {
+					if (!isConnected())
 						close();
-						listener.onDisconnect(instance);
-					}
 				}
 			}
 		};
@@ -80,17 +78,21 @@ public class Connection implements SocketListener {
 	}
 
 	public void close() {
+		if (!open.get())
+			return;
+
+		sendDisconnect();
+		listener.onDisconnect(instance);
 		open.set(false);
 		if (sendThread != null) {
 			sendThread.interrupt();
 			pingThread.interrupt();
 		}
-		sendDisconnect();
 	}
 
 	private boolean isConnected() {
 		synchronized (lastReceived) {
-			return lastReceived.getValue() != -1 && Util.millis() - lastReceived.getValue() < 5000L;
+			return open.get() && lastReceived.getValue() != -1 && Util.millis() - lastReceived.getValue() < 5000L;
 		}
 	}
 

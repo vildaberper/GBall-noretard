@@ -1,7 +1,5 @@
 package GBall.engine;
 
-import java.util.HashMap;
-
 public class Util {
 
 	public static long millis() {
@@ -26,14 +24,6 @@ public class Util {
 			minmax = -minmax;
 
 		return l > minmax ? minmax : (l < -minmax ? -minmax : l);
-	}
-
-	public static HashMap<Long, Entity> clone(HashMap<Long, Entity> map) {
-		HashMap<Long, Entity> nmap = new HashMap<Long, Entity>();
-		map.entrySet().forEach(e -> {
-			nmap.put(e.getKey(), e.getValue().clone());
-		});
-		return nmap;
 	}
 
 }

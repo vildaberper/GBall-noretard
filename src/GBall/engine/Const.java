@@ -16,35 +16,35 @@ public final class Const {
 	public final static String APP_NAME = "Rocket League för hemmafruar";
 	public final static int DISPLAY_WIDTH = 1024;
 	public final static int DISPLAY_HEIGHT = 758;
-	public final static int WINDOW_TOP_HEIGHT = 0;
-	public final static int WINDOW_BORDER_WIDTH = 0;
-	public final static int WINDOW_BOTTOM_HEIGHT = 0;
 	public final static Color BG_COLOR = Color.BLACK;
 	public final static int FONT_SIZE = 24;
 
-	public final static boolean SHOW_FPS = true;
-	public final static Color FPS_TEXT_COLOR = Color.WHITE;
+	public final static Color TEXT_COLOR = Color.WHITE;
 	public final static Vector2 FPS_TEXT_POSITION = new Vector2(10.0, 50.0);
 
-	public final static Vector2 TEAM1_SCORE_TEXT_POSITION = new Vector2((double) (DISPLAY_WIDTH / 2) - 120, 52.0);
-	public final static Vector2 TEAM2_SCORE_TEXT_POSITION = new Vector2((double) (DISPLAY_WIDTH / 2) + 120, 52.0);
+	public final static Vector2 TEAM1_SCORE_TEXT_POSITION = new Vector2((double) (DISPLAY_WIDTH / 2) - 120, 22.0);
+	public final static Vector2 TEAM2_SCORE_TEXT_POSITION = new Vector2((double) (DISPLAY_WIDTH / 2) + 120, 22.0);
 	public final static Font SCORE_FONT = new Font("Times New Roman", Font.BOLD, FONT_SIZE);
+	public final static Font DEBUG_FONT = new Font("Arial", Font.BOLD, 12);
+	public final static Vector2 DEBUG_TEXT_POSITION = new Vector2(13.0, 13.0);
 
-	public final static int GOAL_WIDTH = 15;
+	public final static int GOAL_WIDTH = 10;
 	public final static int TEAM1_GOAL_POSITION = 0;
 	public final static int TEAM2_GOAL_POSITION = DISPLAY_WIDTH - GOAL_WIDTH;
 
 	public final static Color TEAM1_COLOR = Color.RED;
 	public final static Color TEAM2_COLOR = Color.GREEN;
+	
+	public final static double START_FROM_EDGE = 100.0;
 
-	public final static double START_TEAM1_SHIP1_X = 200.0;
-	public final static double START_TEAM1_SHIP1_Y = 100.0;
-	public final static double START_TEAM1_SHIP2_X = START_TEAM1_SHIP1_X;
-	public final static double START_TEAM1_SHIP2_Y = DISPLAY_HEIGHT - START_TEAM1_SHIP1_Y;
-	public final static double START_TEAM2_SHIP1_X = DISPLAY_WIDTH - START_TEAM1_SHIP1_X;
-	public final static double START_TEAM2_SHIP1_Y = START_TEAM1_SHIP1_Y;
-	public final static double START_TEAM2_SHIP2_X = START_TEAM2_SHIP1_X;
-	public final static double START_TEAM2_SHIP2_Y = DISPLAY_HEIGHT - START_TEAM2_SHIP1_Y;
+	public final static double START_TEAM1_SHIP1_X = START_FROM_EDGE;
+	public final static double START_TEAM1_SHIP1_Y = START_FROM_EDGE;
+	public final static double START_TEAM1_SHIP2_X = START_FROM_EDGE;
+	public final static double START_TEAM1_SHIP2_Y = DISPLAY_HEIGHT - START_FROM_EDGE;
+	public final static double START_TEAM2_SHIP1_X = DISPLAY_WIDTH - START_FROM_EDGE;
+	public final static double START_TEAM2_SHIP1_Y = START_FROM_EDGE;
+	public final static double START_TEAM2_SHIP2_X = DISPLAY_WIDTH - START_FROM_EDGE;
+	public final static double START_TEAM2_SHIP2_Y = DISPLAY_HEIGHT - START_FROM_EDGE;
 
 	public final static double BALL_X = DISPLAY_WIDTH / 2;
 	public final static double BALL_Y = DISPLAY_HEIGHT / 2;
