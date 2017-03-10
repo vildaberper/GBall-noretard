@@ -126,7 +126,7 @@ public class Connection implements SocketListener {
 
 	@Override
 	public void onReceive(Location source, Packet packet) {
-		if (!open.get())
+		if (!open.get() || !source.equals(location))
 			return;
 
 		Object o = packet.getObject();
