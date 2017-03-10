@@ -4,8 +4,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -39,9 +37,6 @@ public class GameWindow implements WindowListener {
 	private final Panel panel;
 	private Graphics graphics;
 
-	// private final static int YOFFSET = 34;
-	// private final static int XOFFSET = 4;
-
 	private final GameWindowListener listener;
 
 	private final GameWindow instance = this;
@@ -49,16 +44,15 @@ public class GameWindow implements WindowListener {
 	public GameWindow(GameWindowListener listener, String titleSuffix) {
 		this.listener = listener;
 
-		panel = new Panel();
 		frame = new JFrame(Const.APP_NAME + (titleSuffix != null ? " " + titleSuffix : ""));
 		frame.addWindowListener(this);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+
+		panel = new Panel();
 		panel.setPreferredSize(new Dimension(Const.DISPLAY_WIDTH, Const.DISPLAY_HEIGHT));
 		frame.add(panel);
-		
-		frame.pack();
 
+		frame.pack();
 		frame.setVisible(true);
 	}
 

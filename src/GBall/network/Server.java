@@ -9,9 +9,9 @@ import java.util.function.Consumer;
 import GBall.network.Connection.ConnectionListener;
 import GBall.network.Socket.SocketListener;
 
-public class ServerConnection<T> implements SocketListener, ConnectionListener {
+public class Server<T> implements SocketListener, ConnectionListener {
 
-	public interface ServerConnectionListener<T> {
+	public interface ServerListener<T> {
 
 		public void onConnect(ServerClient<T> client);
 
@@ -23,11 +23,11 @@ public class ServerConnection<T> implements SocketListener, ConnectionListener {
 
 	private final Socket socket;
 
-	private final ServerConnectionListener<T> listener;
+	private final ServerListener<T> listener;
 
 	private final Map<Location, ServerClient<T>> clients = new ConcurrentHashMap<Location, ServerClient<T>>();
 
-	public ServerConnection(int port, ServerConnectionListener<T> listener) throws SocketException {
+	public Server(int port, ServerListener<T> listener) throws SocketException {
 		this.socket = new Socket(port);
 		this.listener = listener;
 

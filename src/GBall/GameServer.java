@@ -19,15 +19,15 @@ import GBall.engine.event.RemoveEntityEvent;
 import GBall.engine.event.ResetGoalsEvent;
 import GBall.engine.event.StateEvent;
 import GBall.network.ServerClient;
-import GBall.network.ServerConnection;
-import GBall.network.ServerConnection.ServerConnectionListener;
+import GBall.network.Server;
+import GBall.network.Server.ServerListener;
 
 import static GBall.engine.Util.*;
 
-public class Server implements GameListener, ServerConnectionListener<Server.Client> {
+public class GameServer implements GameListener, ServerListener<GameServer.Client> {
 
 	public static void main(String[] args) throws IOException {
-		Server s = new Server();
+		GameServer s = new GameServer();
 		s.run();
 	}
 
@@ -41,24 +41,24 @@ public class Server implements GameListener, ServerConnectionListener<Server.Cli
 
 	}
 
-	private ServerConnection<Server.Client> serverConnection;
+	private Server<GameServer.Client> connection;
 
 	private long startTime;
 
 	private final Game game;
 	private final GameWindow gw;
 
-	public Server() {
+	public GameServer() {
 		game = new Game(this);
 		gw = new GameWindow(game, "- SERVER ");
 	}
 
-	private ServerClient<Server.Client> getClient(long id) {
-		return serverConnection.getClient(new Client(id));
+	private ServerClient<GameServer.Client> getClient(long id) {
+		return connection.getClient(new Client(id));
 	}
 
 	public void run() throws SocketException {
-		serverConnection = new ServerConnection<Server.Client>(25565, this);
+		connection = new Server<GameServer.Client>(25565, this);
 
 		game.reset();
 		game.saveState();
@@ -79,13 +79,11 @@ public class Server implements GameListener, ServerConnectionListener<Server.Cli
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				// TODO Auto-generated method stub
 
 			}
 
 			@Override
 			public void keyTyped(KeyEvent e) {
-				// TODO Auto-generated method stub
 
 			}
 
@@ -95,8 +93,8 @@ public class Server implements GameListener, ServerConnectionListener<Server.Cli
 			synchronized (game) {
 				game.tick();
 
-				if (game.getFrame() % Const.PERIODIC_STATES == 0L)
-					serverConnection.broadcast(new StateEvent(game.getState()));
+				// if (game.getFrame() % Const.PERIODIC_STATES == 0L)
+				// serverConnection.broadcast(new StateEvent(game.getState()));
 
 				gw.repaint();
 			}
@@ -109,7 +107,7 @@ public class Server implements GameListener, ServerConnectionListener<Server.Cli
 	}
 
 	@Override
-	public void onConnect(ServerClient<Server.Client> client) {
+	public void onConnect(ServerClient<GameServer.Client> client) {
 		AddEntityEvent aee = null;
 		StateEvent gse;
 		Ship ship;
@@ -125,22 +123,24 @@ public class Server implements GameListener, ServerConnectionListener<Server.Cli
 		client.setData(new Client(id));
 		client.send(new Handshake(startTime, id, gse));
 		if (aee != null) {
-			serverConnection.broadcast(aee);
+			connection.broadcast(aee);
 			game.pushEvent(aee);
 		}
 	}
 
 	@Override
-	public void onReceive(ServerClient<Server.Client> client, Object o) {
+	public void onReceive(ServerClient<GameServer.Client> client, Object o) {
 		if (!(o instanceof Event))
 			return;
 
 		Event event = (Event) o;
 
-		if (!(event instanceof ControllerEvent && ((ControllerEvent) event).entityId == client.getData().id))
+		if (!(event instanceof ControllerEvent && ((ControllerEvent) event).entityId == client.getData().id)) {
+			System.out.println("Client " + client.connection.location.toString() + " tried to cheat!");
 			return;
+		}
 
-		serverConnection.broadcast(event, client);
+		connection.broadcast(event, client);
 		game.pushEvent(event);
 	}
 
@@ -148,13 +148,13 @@ public class Server implements GameListener, ServerConnectionListener<Server.Cli
 	public void onGoal(boolean red) {
 		GoalEvent event = new GoalEvent(game.getFrame(), red);
 
-		serverConnection.broadcast(event);
+		connection.broadcast(event);
 		game.pushEvent(event);
 	}
 
 	@Override
 	public void onTimewarp(long offset, long entityId) {
-		ServerClient<Server.Client> client = getClient(entityId);
+		ServerClient<GameServer.Client> client = getClient(entityId);
 
 		++offset;
 		if (client != null)
@@ -173,16 +173,16 @@ public class Server implements GameListener, ServerConnectionListener<Server.Cli
 
 		RemoveEntityEvent event = new RemoveEntityEvent(game.getFrame() + 1, client.getData().id);
 
-		serverConnection.broadcast(event);
+		connection.broadcast(event);
 		game.pushEvent(event);
 
-		if (serverConnection.isEmpty())
+		if (connection.isEmpty())
 			game.pushEvent(new ResetGoalsEvent(game.getFrame() + 1));
 	}
 
 	@Override
 	public void onExit() {
-		serverConnection.forEachClient(e -> e.connection.close());
+		connection.forEachClient(e -> e.connection.close());
 	}
 
 }

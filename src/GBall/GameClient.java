@@ -17,20 +17,20 @@ import GBall.engine.Vector2.Direction;
 import GBall.engine.event.ControllerEvent;
 import GBall.engine.event.Event;
 import GBall.engine.event.OffsetEvent;
-import GBall.network.ClientConnection;
-import GBall.network.ClientConnection.ClientConnectionListener;
+import GBall.network.Client;
+import GBall.network.Client.ClientListener;
 import GBall.network.Location;
 
 import static GBall.engine.Util.*;
 
-public class Client implements ClientConnectionListener, ControllerListener, GameListener {
+public class GameClient implements ClientListener, ControllerListener, GameListener {
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
-		Client c = new Client();
+		GameClient c = new GameClient();
 		c.run();
 	}
 
-	private ClientConnection clientConnection = null;
+	private Client connection = null;
 
 	private final Location server = new Location("tfbs.no-ip.org", 25565);
 	// private final Location server = new Location("localhost", 25565);
@@ -47,7 +47,7 @@ public class Client implements ClientConnectionListener, ControllerListener, Gam
 	private final Game game;
 	private final GameWindow gw;
 
-	public Client() throws UnknownHostException {
+	public GameClient() throws UnknownHostException {
 		game = new Game(this);
 		gw = new GameWindow(game);
 	}
@@ -84,8 +84,8 @@ public class Client implements ClientConnectionListener, ControllerListener, Gam
 		while (true) {
 			if (!doneHandshake) {
 				gw.repaint();
-				if (clientConnection == null)
-					clientConnection = new ClientConnection(server, this);
+				if (connection == null)
+					connection = new Client(server, this);
 				sleep(Const.FRAME_INCREMENT);
 				continue;
 			}
@@ -157,7 +157,7 @@ public class Client implements ClientConnectionListener, ControllerListener, Gam
 		synchronized (game) {
 			event = new ControllerEvent(game.getFrame() + Const.LOCAL_DELAY, id, d, press);
 		}
-		clientConnection.send(event);
+		connection.send(event);
 		game.pushEvent(event);
 	}
 
@@ -188,7 +188,7 @@ public class Client implements ClientConnectionListener, ControllerListener, Gam
 
 	@Override
 	public void onExit() {
-		clientConnection.close();
+		connection.close();
 	}
 
 }

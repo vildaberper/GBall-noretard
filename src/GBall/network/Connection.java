@@ -101,7 +101,7 @@ public class Connection implements SocketListener {
 			return;
 		}
 
-		sendBuffer.put(sendId, new Payload(sendId, o).toPacket());
+		sendBuffer.put(sendId, new IDContainer(sendId, o).toPacket());
 		++sendId;
 		sendThread.interrupt();
 	}
@@ -111,7 +111,7 @@ public class Connection implements SocketListener {
 	}
 
 	private void sendACK(long id) {
-		send(new Payload(id).toPacket());
+		send(new IDContainer(id).toPacket());
 	}
 
 	private void sendPing() {
@@ -134,32 +134,32 @@ public class Connection implements SocketListener {
 				lastReceived.setValue(o instanceof Disconnect ? -1 : Util.millis());
 		}
 
-		if (!(o instanceof Payload))
+		if (!(o instanceof IDContainer))
 			return;
 
-		Payload payload = (Payload) o;
+		IDContainer idc = (IDContainer) o;
 
-		if (payload.isACK()) {
-			sendBuffer.remove(payload.id);
+		if (idc.isACK()) {
+			sendBuffer.remove(idc.id);
 			return;
 		}
 
-		sendACK(payload.id);
+		sendACK(idc.id);
 
-		if (payload.id >= receiveId) {
-			if (payload.id - receiveId + missed.size() > 100) {
+		if (idc.id >= receiveId) {
+			if (idc.id - receiveId + missed.size() > 100) {
 				System.out.println("Connection overload: too many missed packets");
 				close();
 				return;
 			}
-			for (long l = receiveId; l < payload.id; ++l)
+			for (long l = receiveId; l < idc.id; ++l)
 				missed.add(l);
-			receiveId = payload.id + 1;
-		} else if (missed.contains(payload.id))
-			missed.remove(payload.id);
+			receiveId = idc.id + 1;
+		} else if (missed.contains(idc.id))
+			missed.remove(idc.id);
 		else
 			return;
-		listener.onReceive(this, payload.o);
+		listener.onReceive(this, idc.o);
 	}
 
 }

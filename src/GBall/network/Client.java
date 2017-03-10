@@ -5,9 +5,9 @@ import java.net.SocketException;
 
 import GBall.network.Connection.ConnectionListener;
 
-public class ClientConnection implements ConnectionListener {
+public class Client implements ConnectionListener {
 
-	public interface ClientConnectionListener {
+	public interface ClientListener {
 
 		public void onDisconnect();
 
@@ -18,9 +18,9 @@ public class ClientConnection implements ConnectionListener {
 	private final Socket socket;
 	private final Connection connection;
 
-	private final ClientConnectionListener listener;
+	private final ClientListener listener;
 
-	public ClientConnection(Location server, ClientConnectionListener listener) throws SocketException {
+	public Client(Location server, ClientListener listener) throws SocketException {
 		this.socket = new Socket();
 		this.listener = listener;
 
